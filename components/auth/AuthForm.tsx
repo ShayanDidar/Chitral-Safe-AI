@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck, UserRound } from "lucide-react";
 import { useHazardStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { Card, btn } from "@/components/ui/primitives";
 import { LogoMark } from "@/components/layout/Logo";
-import { ApiError, fetchMe, login, signup } from "@/services/apiClient";
+import { ApiError, demoLogin, fetchMe, login, signup } from "@/services/apiClient";
 
 const inputCls =
   "mt-1 h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100";
@@ -19,7 +19,7 @@ function safeNext(next: string | null) {
   return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
 }
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({ mode, demoEnabled = false }: { mode: "login" | "signup"; demoEnabled?: boolean }) {
   const { t } = useI18n();
   const { setUser } = useHazardStore();
   const router = useRouter();
@@ -30,6 +30,21 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [demoBusy, setDemoBusy] = useState<"admin" | "user" | null>(null);
+
+  async function onDemo(account: "admin" | "user") {
+    setDemoBusy(account);
+    setError(null);
+    try {
+      await demoLogin(account);
+      setUser(await fetchMe());
+      router.replace(account === "admin" && next === "/" ? "/admin" : next);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t("common.error"));
+      setDemoBusy(null);
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -107,6 +122,39 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </Link>
       </p>
       {mode === "signup" && <p className="mt-4 text-center text-xs leading-relaxed text-slate-500">{t("auth.privacyNote")}</p>}
+
+      {demoEnabled && (
+        <div className="mt-6 border-t border-slate-100 pt-5">
+          <p className="text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{t("demo.title")}</p>
+          <div className="mt-3 grid gap-2">
+            {(
+              [
+                ["admin", ShieldCheck, "demo.admin", "demo-admin@chitralsafe.test"],
+                ["user", UserRound, "demo.user", "demo-reporter@chitralsafe.test"],
+              ] as const
+            ).map(([account, Icon, label, email]) => (
+              <button
+                key={account}
+                type="button"
+                disabled={!!demoBusy}
+                onClick={() => void onDemo(account)}
+                className="flex items-center gap-3 rounded-xl border border-slate-200 px-3.5 py-2.5 text-start transition-colors hover:border-brand-300 hover:bg-brand-50/50 disabled:opacity-60"
+              >
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-700">
+                  {demoBusy === account ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Icon className="size-4" aria-hidden />}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-slate-900">{t(label)}</span>
+                  <span dir="ltr" className="block truncate text-xs text-slate-500">
+                    {email}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-center text-[11px] leading-relaxed text-slate-400">{t("demo.note")}</p>
+        </div>
+      )}
     </Card>
   );
 }

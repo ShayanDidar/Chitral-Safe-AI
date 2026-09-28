@@ -15,7 +15,9 @@ With no configuration, the app uses an embedded Postgres database (PGlite, store
 
 ### Create an admin
 
-Pick one:
+For demos, the sign-in page has **Sign in as Demo Admin** and **Sign in as Demo Reporter** buttons (no password). They are on by default. **Anyone who opens the site can use them**, so set `DEMO_LOGIN=false` before handling real reports.
+
+For real admins, pick one:
 
 - Set `ADMIN_EMAILS=you@example.com` in `.env.local`, then sign up or sign in with that email.
 - Sign up normally, then run `npm run admin:grant -- you@example.com`.
@@ -28,6 +30,7 @@ See `.env.example`.
 |---|---|---|
 | `DATABASE_URL` | **Yes on Vercel** | Postgres connection string (Neon, Supabase, Vercel Postgres…). Leave empty locally to use the embedded database. |
 | `ADMIN_EMAILS` | Recommended | Comma-separated emails that become admins. |
+| `DEMO_LOGIN` | No | Set to `false` to remove the one-click demo accounts. |
 | `SEED_DEMO_DATA` | No | Set to `false` to start with an empty database. |
 | `AI_API_KEY` | No | Enables the live AI. Anthropic, Google Gemini and OpenAI-compatible keys are detected automatically. Without it, demo answers are used. |
 | `AI_PROVIDER`, `AI_MODEL`, `AI_BASE_URL` | No | Override AI provider details. |

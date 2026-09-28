@@ -42,6 +42,7 @@ export const fetchMe = () => api<{ user: CurrentUser | null }>("/api/auth/me").t
 export const signup = (b: { name: string; email: string; password: string }) => api("/api/auth/signup", json("POST", b));
 export const login = (b: { email: string; password: string }) => api("/api/auth/login", json("POST", b));
 export const logout = () => api("/api/auth/logout", json("POST"));
+export const demoLogin = (account: "admin" | "user") => api("/api/auth/demo", json("POST", { account }));
 export const updateProfile = (b: { name: string; bio: string; phone: string; contactEmail: string }) =>
   api<{ user: CurrentUser }>("/api/profile", json("PATCH", b)).then((r) => r.user);
 export const uploadAvatar = (file: Blob) => {

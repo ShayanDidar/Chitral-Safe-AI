@@ -6,24 +6,32 @@
  *   AI_API_KEY   — your key. If missing, realistic demo responses are used.
  *   AI_PROVIDER  — "anthropic" or "openai" (any OpenAI-compatible API: OpenAI,
  *                  Groq, OpenRouter, Together, Google Gemini's OpenAI endpoint…).
- *                  Auto-detected from the key when omitted.
+ *                  Auto-detected from the key when omitted; Google Gemini keys
+ *                  are routed to Gemini automatically.
  *   AI_MODEL     — model name (optional for Anthropic).
  *   AI_BASE_URL  — base URL for OpenAI-compatible providers.
  */
 import { demoChat, demoRisk } from "@/lib/ai/demo";
-import { formatContext, RISK_INSTRUCTIONS, SYSTEM_PROMPT } from "@/lib/ai/systemPrompt";
+import { formatContext, languageInstruction, RISK_INSTRUCTIONS, SYSTEM_PROMPT } from "@/lib/ai/systemPrompt";
+import type { Lang } from "@/lib/i18n/terms";
 import type { AIContext, AIMode, ChatMessage, RiskAssessment, RiskLevel } from "@/types";
 
 interface AIConfig {
   provider: "anthropic" | "openai";
   apiKey: string;
   model: string;
+  /** Tried in order when a model is overloaded or unavailable. */
+  fallbackModels: string[];
   baseUrl: string;
 }
+
+const GEMINI_MODELS = ["gemini-3.6-flash", "gemini-3.1-flash-lite", "gemini-flash-latest"];
 
 export function getAIConfig(): AIConfig | null {
   const apiKey = process.env.AI_API_KEY?.trim();
   if (!apiKey) return null;
+  // Google Gemini keys ("AIza…" or "AQ.…") use Gemini's OpenAI-compatible endpoint.
+  const isGemini = apiKey.startsWith("AIza") || apiKey.startsWith("AQ.");
   const provider =
     (process.env.AI_PROVIDER?.trim().toLowerCase() as AIConfig["provider"] | undefined) ||
     (apiKey.startsWith("sk-ant-") ? "anthropic" : "openai");
@@ -32,14 +40,19 @@ export function getAIConfig(): AIConfig | null {
       provider,
       apiKey,
       model: process.env.AI_MODEL?.trim() || "claude-sonnet-5",
+      fallbackModels: [],
       baseUrl: (process.env.AI_BASE_URL?.trim() || "https://api.anthropic.com").replace(/\/$/, ""),
     };
   }
   return {
     provider: "openai",
     apiKey,
-    model: process.env.AI_MODEL?.trim() || "gpt-4o-mini",
-    baseUrl: (process.env.AI_BASE_URL?.trim() || "https://api.openai.com/v1").replace(/\/$/, ""),
+    model: process.env.AI_MODEL?.trim() || (isGemini ? GEMINI_MODELS[0] : "gpt-4o-mini"),
+    fallbackModels: isGemini ? GEMINI_MODELS.filter((m) => m !== process.env.AI_MODEL?.trim()) : [],
+    baseUrl: (
+      process.env.AI_BASE_URL?.trim() ||
+      (isGemini ? "https://generativelanguage.googleapis.com/v1beta/openai" : "https://api.openai.com/v1")
+    ).replace(/\/$/, ""),
   };
 }
 
@@ -49,25 +62,25 @@ export interface ChatResult {
   notice?: string;
 }
 
-export async function chat(messages: ChatMessage[], context: AIContext | null): Promise<ChatResult> {
+export async function chat(messages: ChatMessage[], context: AIContext | null, lang: Lang = "en"): Promise<ChatResult> {
   const config = getAIConfig();
   const lastUser = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
 
   if (!config) {
     await new Promise((r) => setTimeout(r, 700)); // feel natural in demos
-    return { reply: demoChat(lastUser, context), mode: "demo" };
+    return { reply: demoChat(lastUser, context, lang), mode: "demo" };
   }
 
   try {
-    const system = `${SYSTEM_PROMPT}\n\n${formatContext(context)}`;
+    const system = `${SYSTEM_PROMPT}\n\n${languageInstruction(lang)}\n\n${formatContext(context)}`;
     const reply = await complete(config, system, messages, 900);
-    return { reply: reply.trim() || demoChat(lastUser, context), mode: "live" };
+    return { reply: reply.trim() || demoChat(lastUser, context, lang), mode: "live" };
   } catch (err) {
     console.error("[aiService] chat failed, falling back to demo:", err);
     return {
-      reply: demoChat(lastUser, context),
+      reply: demoChat(lastUser, context, lang),
       mode: "demo",
-      notice: "The AI provider could not be reached, so a demo response is shown.",
+      notice: "provider_unreachable",
     };
   }
 }
@@ -77,13 +90,17 @@ export interface RiskResult {
   mode: AIMode;
 }
 
-export async function analyzeRisk(context: AIContext | null, scope: string | null): Promise<RiskResult> {
-  const fallback = demoRisk(context, scope);
+export async function analyzeRisk(
+  context: AIContext | null,
+  scope: string | null,
+  lang: Lang = "en",
+): Promise<RiskResult> {
+  const fallback = demoRisk(context, scope, lang);
   const config = getAIConfig();
   if (!config) return { assessment: fallback, mode: "demo" };
 
   try {
-    const system = `${SYSTEM_PROMPT}\n\n${formatContext(context)}`;
+    const system = `${SYSTEM_PROMPT}\n\n${languageInstruction(lang)}\n\n${formatContext(context)}`;
     const prompt = `${RISK_INSTRUCTIONS}\n\nScope: ${scope ?? "All of Chitral"}`;
     const text = await complete(config, system, [{ role: "user", content: prompt }], 500);
     const json = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
@@ -109,8 +126,28 @@ export async function analyzeRisk(context: AIContext | null, scope: string | nul
 
 // ---------------------------------------------------------------------------
 
+/**
+ * Calls the configured model; on rate-limit, overload or "model not found"
+ * errors it moves on to the next fallback model (hosted models are often busy).
+ */
 async function complete(config: AIConfig, system: string, messages: ChatMessage[], maxTokens: number): Promise<string> {
-  const signal = AbortSignal.timeout(30_000);
+  const models = [config.model, ...config.fallbackModels.filter((m) => m !== config.model)];
+  let lastError: unknown;
+  for (const model of models) {
+    try {
+      return await completeOnce({ ...config, model }, system, messages, maxTokens);
+    } catch (err) {
+      lastError = err;
+      const retryable = err instanceof Error && /HTTP (404|429|500|502|503|504)|timeout|aborted/i.test(err.message + err.name);
+      if (!retryable) break;
+      console.warn(`[aiService] ${model} unavailable, trying next model`);
+    }
+  }
+  throw lastError;
+}
+
+async function completeOnce(config: AIConfig, system: string, messages: ChatMessage[], maxTokens: number): Promise<string> {
+  const signal = AbortSignal.timeout(20_000);
 
   if (config.provider === "anthropic") {
     const res = await fetch(`${config.baseUrl}/v1/messages`, {

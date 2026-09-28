@@ -11,6 +11,7 @@ import { HAZARD_TYPES } from "@/lib/hazards";
 import { SeverityBadge, btn } from "@/components/ui/primitives";
 import { TimeAgo } from "@/components/ui/TimeAgo";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 import type { HazardReport } from "@/types";
 import { hazardIcon } from "./markerIcons";
 
@@ -107,32 +108,34 @@ export default function MapViewInner({
 function ReportPopup({ report }: { report: HazardReport }) {
   const meta = HAZARD_TYPES[report.type];
   const Icon = meta.icon;
+  const { t, dir, hazard, place, report: localize } = useI18n();
+  const text = localize(report);
   return (
-    <div>
+    <div dir={dir}>
       {report.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={report.imageUrl} alt={report.title} className="h-32 w-full object-cover" />
+        <img src={report.imageUrl} alt={text.title} className="h-32 w-full object-cover" />
       )}
       <div className="space-y-2 p-3.5">
         <div className="flex items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-slate-900">
             <Icon className="size-4 text-slate-500" aria-hidden />
-            {meta.label}
+            {hazard(report.type)}
           </span>
           <SeverityBadge severity={report.severity} />
         </div>
         <div className="flex items-center gap-1 text-xs text-slate-500">
           <MapPin className="size-3.5" aria-hidden />
-          <span className="font-medium text-slate-700">{report.locationName}</span>
+          <span className="font-medium text-slate-700">{place(report.locationName)}</span>
           <span>·</span>
           <TimeAgo iso={report.reportedAt} />
         </div>
-        <p className="line-clamp-3 text-[13px] text-slate-600">{report.description}</p>
+        <p className="line-clamp-3 text-[13px] text-slate-600">{text.description}</p>
         <Link
           href={`/reports/${report.id}`}
           className={cn(btn.base, btn.primary, btn.sm, "w-full !text-white")}
         >
-          View Report <ArrowRight className="size-3.5" aria-hidden />
+          {t("common.viewReportCta")} <ArrowRight className="size-3.5 rtl:-scale-x-100" aria-hidden />
         </Link>
       </div>
     </div>

@@ -19,6 +19,7 @@ interface RiskState {
   mode: AIMode;
   /** Number of reports when the assessment was made — used to refresh after new reports. */
   reportCount?: number;
+  lang?: "en" | "ur";
 }
 
 interface HazardStore {

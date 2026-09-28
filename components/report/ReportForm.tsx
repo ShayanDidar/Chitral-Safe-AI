@@ -22,6 +22,8 @@ import { Card, SeverityBadge, SeverityMeter, btn } from "@/components/ui/primiti
 import { LocationPicker } from "@/components/map";
 import { HazardCard } from "@/components/hazards/HazardCard";
 import type { HazardReport, HazardType, LatLng, Severity } from "@/types";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
+import type { DictKey } from "@/lib/i18n/dictionary";
 
 const inputCls =
   "w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100";
@@ -29,10 +31,11 @@ const inputCls =
 const MAX_DESC = 500;
 const PRIMARY = PRIMARY_LOCATION_IDS.map((id) => LOCATIONS.find((l) => l.id === id)!);
 
-type Errors = Partial<Record<"type" | "location" | "description" | "severity" | "image", string>>;
+type Errors = Partial<Record<"type" | "location" | "description" | "severity" | "image", DictKey>>;
 
 export function ReportForm() {
   const { addReport } = useHazardStore();
+  const { t, hazard, severity: severityLabel, severityDesc, place } = useI18n();
   const [type, setType] = useState<HazardType | null>(null);
   const [severity, setSeverity] = useState<Severity | null>(null);
   const [locationName, setLocationName] = useState("");
@@ -81,8 +84,8 @@ export function ReportForm() {
     setErrors((e) => ({ ...e, image: undefined }));
     try {
       setImage(await compressImage(file));
-    } catch (err) {
-      setErrors((e) => ({ ...e, image: err instanceof Error ? err.message : "Could not load image." }));
+    } catch {
+      setErrors((e) => ({ ...e, image: "err.image" }));
     } finally {
       setImageBusy(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -91,10 +94,10 @@ export function ReportForm() {
 
   function validate(): Errors {
     const e: Errors = {};
-    if (!type) e.type = "Choose the type of hazard.";
-    if (!locationName.trim() && !coords) e.location = "Enter a location or tap the map.";
-    if (description.trim().length < 10) e.description = "Add a short description (at least 10 characters).";
-    if (!severity) e.severity = "Select how severe it is.";
+    if (!type) e.type = "err.type";
+    if (!locationName.trim() && !coords) e.location = "err.location";
+    if (description.trim().length < 10) e.description = "err.description";
+    if (!severity) e.severity = "err.severity";
     return e;
   }
 
@@ -139,22 +142,22 @@ export function ReportForm() {
         <span className="mx-auto grid size-14 place-items-center rounded-full bg-green-50 text-green-700 ring-8 ring-green-50/60">
           <CircleCheck className="size-7" aria-hidden />
         </span>
-        <h2 className="mt-5 text-xl font-semibold tracking-tight text-slate-900">Report Submitted Successfully</h2>
+        <h2 className="mt-5 text-xl font-semibold tracking-tight text-slate-900">{t("report.successTitle")}</h2>
         <p className="mx-auto mt-1.5 max-w-sm text-sm text-slate-500">
-          Thank you. Your report is now live on the map, in the community feed and on the dashboard.
+          {t("report.successBody")}
         </p>
-        <div className="mx-auto mt-6 max-w-xs text-left">
+        <div className="mx-auto mt-6 max-w-xs text-start">
           <HazardCard report={submitted} />
         </div>
         <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
           <Link href={`/community?highlight=${submitted.id}`} className={cn(btn.base, btn.primary, btn.md)}>
-            <Users className="size-4" aria-hidden /> View in Community
+            <Users className="size-4" aria-hidden /> {t("report.viewCommunity")}
           </Link>
           <Link href={`/map?focus=${submitted.id}`} className={cn(btn.base, btn.secondary, btn.md)}>
-            <MapIcon className="size-4" aria-hidden /> See on Map
+            <MapIcon className="size-4" aria-hidden /> {t("report.seeMap")}
           </Link>
           <button type="button" onClick={reset} className={cn(btn.base, btn.ghost, btn.md)}>
-            Report another
+            {t("report.another")}
           </button>
         </div>
       </Card>
@@ -168,20 +171,20 @@ export function ReportForm() {
         <Card className="p-4 sm:p-5">
           <fieldset data-field="type">
             <legend className="text-sm font-semibold text-slate-900">
-              Hazard type <span className="text-red-600">*</span>
+              {t("report.type")} <span className="text-red-600">*</span>
             </legend>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {HAZARD_TYPE_LIST.map((t) => {
-                const meta = HAZARD_TYPES[t];
+              {HAZARD_TYPE_LIST.map((h) => {
+                const meta = HAZARD_TYPES[h];
                 const Icon = meta.icon;
-                const active = type === t;
+                const active = type === h;
                 return (
                   <button
-                    key={t}
+                    key={h}
                     type="button"
                     aria-pressed={active}
                     onClick={() => {
-                      setType(t);
+                      setType(h);
                       setErrors((e) => ({ ...e, type: undefined }));
                     }}
                     className={cn(
@@ -192,7 +195,7 @@ export function ReportForm() {
                     )}
                   >
                     <Icon className={cn("size-5", active ? "text-brand-700" : "text-slate-500")} aria-hidden />
-                    {meta.label}
+                    {hazard(h)}
                   </button>
                 );
               })}
@@ -205,17 +208,17 @@ export function ReportForm() {
         <Card className="p-4 sm:p-5">
           <div data-field="location">
             <label htmlFor="loc" className="text-sm font-semibold text-slate-900">
-              Location <span className="text-red-600">*</span>
+              {t("report.location")} <span className="text-red-600">*</span>
             </label>
             <div className="relative mt-3">
-              <MapPin className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
+              <MapPin className="pointer-events-none absolute start-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
               <input
                 id="loc"
                 list="known-locations"
                 value={locationName}
                 onChange={(e) => chooseLocation(e.target.value)}
-                placeholder="e.g. Ayun road, near the bridge"
-                className={cn(inputCls, "h-11 pl-10")}
+                placeholder={t("report.locPlaceholder")}
+                className={cn(inputCls, "h-11 ps-10")}
               />
               <datalist id="known-locations">
                 {LOCATIONS.map((l) => (
@@ -236,7 +239,7 @@ export function ReportForm() {
                       : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50",
                   )}
                 >
-                  {l.name}
+                  {place(l.name)}
                 </button>
               ))}
             </div>
@@ -248,11 +251,14 @@ export function ReportForm() {
                 <p className="text-xs text-slate-500">
                   {coords ? (
                     <>
-                      <span className="font-medium text-slate-700">Pin placed</span> · {coords.lat.toFixed(4)},{" "}
-                      {coords.lng.toFixed(4)} · drag to adjust
+                      <span className="font-medium text-slate-700">{t("report.pinPlaced")}</span> ·{" "}
+                      <span className="tabular-nums">
+                        {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
+                      </span>{" "}
+                      · {t("report.drag")}
                     </>
                   ) : (
-                    "Tap the map to drop a pin (optional)"
+                    t("report.tapMap")
                   )}
                 </p>
                 <button
@@ -261,7 +267,7 @@ export function ReportForm() {
                   className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
                 >
                   {geoBusy ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : <LocateFixed className="size-3.5" aria-hidden />}
-                  Use my location
+                  {t("report.myLocation")}
                 </button>
               </div>
             </div>
@@ -273,7 +279,7 @@ export function ReportForm() {
         <Card className="p-4 sm:p-5">
           <div data-field="image">
             <p className="text-sm font-semibold text-slate-900">
-              Photo <span className="font-normal text-slate-400">(recommended)</span>
+              {t("report.photo")} <span className="font-normal text-slate-400">{t("report.recommended")}</span>
             </p>
             <input
               ref={fileRef}
@@ -286,13 +292,13 @@ export function ReportForm() {
             {image ? (
               <div className="relative mt-3 overflow-hidden rounded-xl border border-slate-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={image} alt="Selected hazard photo preview" className="max-h-80 w-full object-cover" />
-                <div className="absolute right-2 top-2 flex gap-1.5">
+                <img src={image} alt={t("report.photoAlt")} className="max-h-80 w-full object-cover" />
+                <div className="absolute end-2 top-2 flex gap-1.5">
                   <label htmlFor="photo" className={cn(btn.base, btn.secondary, btn.sm, "cursor-pointer")}>
-                    <RefreshCw className="size-3.5" aria-hidden /> Change
+                    <RefreshCw className="size-3.5" aria-hidden /> {t("report.change")}
                   </label>
                   <button type="button" onClick={() => setImage(null)} className={cn(btn.base, btn.secondary, btn.sm, "text-red-700")}>
-                    <Trash2 className="size-3.5" aria-hidden /> Remove
+                    <Trash2 className="size-3.5" aria-hidden /> {t("report.remove")}
                   </button>
                 </div>
               </div>
@@ -311,8 +317,8 @@ export function ReportForm() {
                 ) : (
                   <ImagePlus className="size-6 text-slate-400" aria-hidden />
                 )}
-                <span className="text-sm font-medium text-slate-700">Upload or take a photo</span>
-                <span className="text-xs text-slate-500">JPG or PNG · drag & drop supported</span>
+                <span className="text-sm font-medium text-slate-700">{t("report.upload")}</span>
+                <span className="text-xs text-slate-500">{t("report.uploadHint")}</span>
               </label>
             )}
             <FieldError msg={errors.image} />
@@ -323,7 +329,7 @@ export function ReportForm() {
         <Card className="p-4 sm:p-5">
           <div data-field="description">
             <label htmlFor="desc" className="text-sm font-semibold text-slate-900">
-              Description <span className="text-red-600">*</span>
+              {t("report.description")} <span className="text-red-600">*</span>
             </label>
             <textarea
               id="desc"
@@ -334,12 +340,13 @@ export function ReportForm() {
                 setDescription(e.target.value);
                 if (e.target.value.trim().length >= 10) setErrors((er) => ({ ...er, description: undefined }));
               }}
-              placeholder="e.g. A landslide has blocked one side of the road near Ayun. Traffic is moving one vehicle at a time."
+              dir="auto"
+              placeholder={t("report.descPlaceholder")}
               className={cn(inputCls, "mt-3 resize-y py-2.5 leading-relaxed")}
             />
             <div className="mt-1 flex justify-between">
               <FieldError msg={errors.description} />
-              <span className="ml-auto text-[11px] tabular-nums text-slate-400">
+              <span className="ms-auto text-[11px] tabular-nums text-slate-400">
                 {description.length}/{MAX_DESC}
               </span>
             </div>
@@ -350,7 +357,7 @@ export function ReportForm() {
         <Card className="p-4 sm:p-5">
           <fieldset data-field="severity">
             <legend className="text-sm font-semibold text-slate-900">
-              Severity <span className="text-red-600">*</span>
+              {t("report.severity")} <span className="text-red-600">*</span>
             </legend>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {SEVERITY_LIST.map((s) => {
@@ -366,16 +373,16 @@ export function ReportForm() {
                       setErrors((e) => ({ ...e, severity: undefined }));
                     }}
                     className={cn(
-                      "rounded-xl border p-3 text-left transition-colors",
+                      "rounded-xl border p-3 text-start transition-colors",
                       active ? cn(meta.soft, "ring-2", meta.ring, "border-transparent") : "border-slate-200 hover:bg-slate-50",
                     )}
                   >
                     <span className={cn("flex items-center gap-2 text-sm font-semibold", active ? meta.text : "text-slate-800")}>
                       <span className="size-2.5 rounded-full" style={{ background: meta.hex }} />
-                      {meta.label}
-                      <SeverityMeter severity={s} className="ml-auto text-slate-400" />
+                      {severityLabel(s)}
+                      <SeverityMeter severity={s} className="ms-auto text-slate-400" />
                     </span>
-                    <span className="mt-1 block text-[11.5px] leading-snug text-slate-500">{meta.description}</span>
+                    <span className="mt-1 block text-[11.5px] leading-snug text-slate-500">{severityDesc(s)}</span>
                   </button>
                 );
               })}
@@ -387,14 +394,14 @@ export function ReportForm() {
         {/* Name */}
         <Card className="p-4 sm:p-5">
           <label htmlFor="author" className="text-sm font-semibold text-slate-900">
-            Your name <span className="font-normal text-slate-400">(optional)</span>
+            {t("report.name")} <span className="font-normal text-slate-400">{t("report.optional")}</span>
           </label>
           <input
             id="author"
             value={author}
             maxLength={40}
             onChange={(e) => setAuthor(e.target.value)}
-            placeholder="Shown on your community post"
+            placeholder={t("report.namePlaceholder")}
             className={cn(inputCls, "mt-3 h-11")}
           />
         </Card>
@@ -402,10 +409,10 @@ export function ReportForm() {
         <button type="submit" disabled={submitting} className={cn(btn.base, btn.primary, "h-12 w-full text-[15px]")}>
           {submitting ? (
             <>
-              <Loader2 className="size-4 animate-spin" aria-hidden /> Submitting…
+              <Loader2 className="size-4 animate-spin" aria-hidden /> {t("report.submitting")}
             </>
           ) : (
-            "Submit Report"
+            t("report.submit")
           )}
         </button>
       </div>
@@ -413,34 +420,33 @@ export function ReportForm() {
       {/* Live preview */}
       <aside className="hidden lg:col-span-2 lg:block">
         <div className="sticky top-20 space-y-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Preview</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t("report.preview")}</p>
           <Card className="overflow-hidden">
             <div className="aspect-[16/10] bg-slate-100">
               {image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={image} alt="" className="h-full w-full object-cover" />
               ) : (
-                <div className="grid h-full place-items-center text-xs text-slate-400">Your photo will appear here</div>
+                <div className="grid h-full place-items-center text-xs text-slate-400">{t("report.photoHere")}</div>
               )}
             </div>
             <div className="space-y-2 p-4">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-slate-900">{type ? HAZARD_TYPES[type].label : "Hazard type"}</span>
+                <span className="text-sm font-semibold text-slate-900">{type ? hazard(type) : t("report.type")}</span>
                 {severity && <SeverityBadge severity={severity} />}
               </div>
               <p className="flex items-center gap-1 text-xs text-slate-500">
-                <MapPin className="size-3.5" aria-hidden /> {locationName || "Location"}
+                <MapPin className="size-3.5" aria-hidden /> {locationName ? place(locationName) : t("report.location")}
               </p>
               <p className="text-[13px] leading-relaxed text-slate-600">
-                {description || "Your description will appear here."}
+                {description || t("report.descHere")}
               </p>
             </div>
           </Card>
           <div className="rounded-xl bg-amber-50 p-4 text-[13px] leading-relaxed text-amber-900 ring-1 ring-inset ring-amber-600/15">
-            <p className="font-semibold">Stay safe while reporting</p>
+            <p className="font-semibold">{t("report.safeTitle")}</p>
             <p className="mt-1 text-amber-800">
-              Never approach a hazard to take a photo. Report from a safe distance. If lives are at risk, call Rescue 1122
-              first.
+              {t("report.safeBody")}
             </p>
           </div>
         </div>
@@ -449,11 +455,12 @@ export function ReportForm() {
   );
 }
 
-function FieldError({ msg }: { msg?: string }) {
+function FieldError({ msg }: { msg?: DictKey }) {
+  const { t } = useI18n();
   if (!msg) return null;
   return (
     <p role="alert" className="mt-2 text-xs font-medium text-red-700">
-      {msg}
+      {t(msg)}
     </p>
   );
 }

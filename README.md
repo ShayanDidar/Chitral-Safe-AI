@@ -47,6 +47,15 @@ components/                 UI components (map, hazards, community, weather, ai,
 scripts/generate-demo-images.mjs   regenerates the illustrated demo photos in public/demo
 ```
 
+## English and Urdu
+
+Use the **اردو / English** button in the top bar to switch languages. Urdu switches the whole layout to right-to-left and uses the Noto Naskh Arabic font. The choice is remembered in the browser.
+
+- UI text: `lib/i18n/dictionary.ts` (every English key must also have an Urdu entry; TypeScript enforces this).
+- Hazard types, severities, place names and weather terms: `lib/i18n/terms.ts`.
+- Demo reports, comments and alerts carry Urdu translations in `data/`. Reports that users submit are shown as they were written.
+- The AI answers in the selected language. The live AI is told which language to use, and the demo answers exist in both.
+
 ## How data flows
 
 A submitted report goes into the shared store (`lib/store.tsx`). The community feed, the map and the dashboard all read from that same list, so the report shows up in all three immediately. Data lasts for the browser session; a refresh resets it to the demo data. To persist it, replace the functions in `services/reportService.ts` with API or database calls.

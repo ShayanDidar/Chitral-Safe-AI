@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from "react";
+import { isolateNumbers } from "@/lib/i18n/terms";
 
 /** Tiny, safe renderer for the subset of Markdown the assistant uses (paragraphs, "- " lists, **bold**, _italic_). */
 export function Markdown({ text }: { text: string }) {
@@ -9,7 +10,7 @@ export function Markdown({ text }: { text: string }) {
   const flushList = () => {
     if (!list.length) return;
     blocks.push(
-      <ul key={`ul-${blocks.length}`} className="my-1.5 space-y-1 pl-1">
+      <ul key={`ul-${blocks.length}`} className="my-1.5 space-y-1 ps-1">
         {list.map((item, i) => (
           <li key={i} className="flex gap-2">
             <span className="mt-[9px] size-1 shrink-0 rounded-full bg-current opacity-50" />
@@ -59,6 +60,7 @@ function inline(s: string): ReactNode {
           {p.slice(1, -1)}
         </em>
       );
-    return <Fragment key={i}>{p}</Fragment>;
+    // Keep numbers like 72% or 18°C in order inside right-to-left text.
+    return <Fragment key={i}>{/[\u0600-\u06FF]/.test(s) ? isolateNumbers(p) : p}</Fragment>;
   });
 }

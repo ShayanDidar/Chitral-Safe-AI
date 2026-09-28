@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { DailyForecast, HourlyPoint } from "@/types";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -18,8 +19,11 @@ function useWidth<T extends HTMLElement>() {
 const fmtHour = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Karachi" });
 
-export const fmtDay = (date: string, i: number) =>
-  i === 0 ? "Today" : new Date(`${date}T12:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", timeZone: "Asia/Karachi" });
+/** Weekday label; `today` is the localized word for the first day. */
+export const fmtDay = (date: string, i: number, today = "Today", locale = "en-GB") =>
+  i === 0
+    ? today
+    : new Date(`${date}T12:00:00Z`).toLocaleDateString(locale, { weekday: locale === "ur-PK" ? "long" : "short", timeZone: "Asia/Karachi" });
 
 const TEMP = "#22695e"; // brand-600
 const RAIN = "#0284c7"; // sky-600
@@ -28,6 +32,7 @@ const RAIN = "#0284c7"; // sky-600
 export function TemperatureChart({ data, height = 220 }: { data: HourlyPoint[]; height?: number }) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
+  const { t } = useI18n();
   const pad = { l: 34, r: 12, t: 16, b: 26 };
   const w = Math.max(0, width - pad.l - pad.r);
   const h = height - pad.t - pad.b;
@@ -51,7 +56,7 @@ export function TemperatureChart({ data, height = 220 }: { data: HourlyPoint[]; 
   const hp = hover !== null ? data[hover] : null;
 
   return (
-    <div ref={ref} className="relative" style={{ height }}>
+    <div ref={ref} dir="ltr" className="relative" style={{ height }}>
       {width > 0 && (
         <svg
           width={width}
@@ -59,7 +64,7 @@ export function TemperatureChart({ data, height = 220 }: { data: HourlyPoint[]; 
           onPointerMove={onMove}
           onPointerLeave={() => setHover(null)}
           role="img"
-          aria-label={`Temperature over the next 24 hours, from ${Math.min(...temps)} to ${Math.max(...temps)} degrees`}
+          aria-label={`${t("weather.tempTrend")}: ${Math.min(...temps)}°–${Math.max(...temps)}°`}
           className="touch-pan-y"
         >
           <defs>
@@ -79,7 +84,7 @@ export function TemperatureChart({ data, height = 220 }: { data: HourlyPoint[]; 
           {data.map((d, i) =>
             i % (width < 480 ? 6 : 3) === 0 ? (
               <text key={d.time} x={x(i)} y={height - 6} textAnchor="middle" className="fill-slate-400 text-[11px] tabular-nums">
-                {i === 0 ? "Now" : fmtHour(d.time)}
+                {i === 0 ? t("weather.nowShort") : fmtHour(d.time)}
               </text>
             ) : null,
           )}
@@ -100,12 +105,13 @@ export function TemperatureChart({ data, height = 220 }: { data: HourlyPoint[]; 
       )}
       {hp && hover !== null && (
         <div
+          dir="auto"
           className="pointer-events-none absolute top-1 z-10 -translate-x-1/2 rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs text-white shadow-float"
           style={{ left: Math.min(Math.max(x(hover), 60), width - 60) }}
         >
           <p className="font-semibold tabular-nums">{hp.temperature}°C</p>
           <p className="text-slate-300 tabular-nums">
-            {fmtHour(hp.time)} · {hp.rainProbability}% rain
+            {fmtHour(hp.time)} · {t("weather.pctRain", { p: hp.rainProbability })}
           </p>
         </div>
       )}
@@ -117,6 +123,8 @@ export function TemperatureChart({ data, height = 220 }: { data: HourlyPoint[]; 
 export function RainChart({ data, height = 220 }: { data: DailyForecast[]; height?: number }) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
+  const { t, locale, condition } = useI18n();
+  const day = (date: string, i: number) => fmtDay(date, i, t("weather.today"), locale);
   const pad = { l: 34, r: 8, t: 16, b: 26 };
   const w = Math.max(0, width - pad.l - pad.r);
   const h = height - pad.t - pad.b;
@@ -126,9 +134,9 @@ export function RainChart({ data, height = 220 }: { data: DailyForecast[]; heigh
   const maxIdx = data.reduce((m, d, i) => (d.rainProbability > data[m].rainProbability ? i : m), 0);
 
   return (
-    <div ref={ref} className="relative" style={{ height }}>
+    <div ref={ref} dir="ltr" className="relative" style={{ height }}>
       {width > 0 && (
-        <svg width={width} height={height} role="img" aria-label="Rain probability for the next 7 days" onPointerLeave={() => setHover(null)}>
+        <svg width={width} height={height} role="img" aria-label={`${t("weather.rainTitle")} · ${t("weather.rainSub")}`} onPointerLeave={() => setHover(null)}>
           {[0, 25, 50, 75, 100].map((t) => (
             <g key={t}>
               <line x1={pad.l} x2={pad.l + w} y1={y(t)} y2={y(t)} stroke="#eef1f4" />
@@ -157,25 +165,26 @@ export function RainChart({ data, height = 220 }: { data: DailyForecast[]; heigh
                   </text>
                 )}
                 <text x={cx} y={height - 6} textAnchor="middle" className="fill-slate-400 text-[11px]">
-                  {fmtDay(d.date, i)}
+                  {day(d.date, i)}
                 </text>
               </g>
             );
           })}
           <line x1={pad.l} x2={pad.l + w} y1={y(60)} y2={y(60)} stroke="#64748b" strokeDasharray="4 4" strokeWidth={1} />
           <text x={pad.l + w} y={y(60) - 5} textAnchor="end" className="fill-slate-500 text-[10px]">
-            High rain likelihood
+            {t("weather.highRain")}
           </text>
         </svg>
       )}
       {hover !== null && (
         <div
+          dir="auto"
           className="pointer-events-none absolute top-1 z-10 -translate-x-1/2 rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs text-white shadow-float"
           style={{ left: Math.min(Math.max(pad.l + slot * hover + slot / 2, 60), width - 60) }}
         >
-          <p className="font-semibold">{fmtDay(data[hover].date, hover)}</p>
+          <p className="font-semibold">{day(data[hover].date, hover)}</p>
           <p className="text-slate-300 tabular-nums">
-            {data[hover].rainProbability}% rain · {data[hover].condition}
+            {t("weather.pctRain", { p: data[hover].rainProbability })} · {condition(data[hover].icon, data[hover].condition)}
           </p>
         </div>
       )}

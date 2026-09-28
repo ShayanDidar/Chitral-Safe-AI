@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, btn } from "@/components/ui/primitives";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
-const EXAMPLES = ["What hazards are active?", "What is the weather?", "Why are landslides common here?"];
+const EXAMPLES = ["ask.ex1", "ask.ex2", "ask.ex3"] as const;
 
 export function AskAIPrompt() {
   const router = useRouter();
   const [q, setQ] = useState("");
+  const { t } = useI18n();
 
   const go = (question: string) => {
     const text = question.trim();
@@ -30,34 +32,34 @@ export function AskAIPrompt() {
           <Sparkles className="size-4" aria-hidden />
         </span>
         <div>
-          <p className="text-sm font-semibold text-slate-900">AI Assistant</p>
-          <p className="text-xs text-slate-500">Answers using current weather, alerts and community reports</p>
+          <p className="text-sm font-semibold text-slate-900">{t("ask.title")}</p>
+          <p className="text-xs text-slate-500">{t("ask.subtitle")}</p>
         </div>
       </div>
       <form onSubmit={onSubmit} className="mt-3.5 flex flex-col gap-2 sm:flex-row">
         <label htmlFor="home-ask" className="sr-only">
-          Ask about Chitral&apos;s environment
+          {t("ask.placeholder")}
         </label>
         <input
           id="home-ask"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Ask about Chitral's environment…"
+          placeholder={t("ask.placeholder")}
           className="h-11 flex-1 rounded-xl border border-slate-200 bg-white px-3.5 text-sm placeholder:text-slate-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
         />
         <button type="submit" className={cn(btn.base, btn.primary, btn.lg)}>
-          Ask AI
+          {t("ask.button")}
         </button>
       </form>
       <div className="mt-2.5 flex flex-wrap gap-1.5">
-        {EXAMPLES.map((e) => (
+        {EXAMPLES.map((key) => (
           <button
-            key={e}
+            key={key}
             type="button"
-            onClick={() => go(e)}
+            onClick={() => go(t(key))}
             className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 hover:border-brand-200 hover:bg-brand-50/60"
           >
-            {e}
+            {t(key)}
           </button>
         ))}
       </div>

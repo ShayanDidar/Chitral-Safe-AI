@@ -5,6 +5,7 @@ export function buildSeedAlerts(now = Date.now()): EnvironmentalAlert[] {
   return [
     {
       id: "a-rain",
+      ur: {title: "شدید بارش", area: "وادئ چترال", message: "کل شام تک وادی بھر میں شدید بارش متوقع ہے۔ ندی نالوں میں پانی تیزی سے بڑھ سکتا ہے۔", risks: ["سیلاب", "لینڈ سلائیڈ"], source: "موسمی پیشگوئی"},
       level: "warning",
       severity: "high",
       title: "High Rainfall",
@@ -17,6 +18,7 @@ export function buildSeedAlerts(now = Date.now()): EnvironmentalAlert[] {
     },
     {
       id: "a-glacier",
+      ur: {title: "گلیشیئر نالے میں طغیانی", area: "ریشن، اپر چترال", message: "مقامی لوگوں کے مطابق ریشن میں گلیشیئر سے آنے والے نالے میں پانی تیزی سے بڑھ رہا ہے۔ نالے سے دور رہیں۔", risks: ["اچانک سیلاب", "ملبے کا بہاؤ"], source: "کمیونٹی رپورٹس"},
       level: "warning",
       severity: "critical",
       title: "Glacier Stream Surge",
@@ -30,6 +32,7 @@ export function buildSeedAlerts(now = Date.now()): EnvironmentalAlert[] {
     },
     {
       id: "a-ayun-road",
+      ur: {title: "سڑک پر خطرہ", area: "ایون روڈ", message: "ایک کمیونٹی رپورٹ کے مطابق سڑک بند ہونے کا امکان ہے۔ یک طرفہ ٹریفک اور تاخیر متوقع ہے۔", risks: ["لینڈ سلائیڈ", "سڑک کی بندش"], source: "کمیونٹی رپورٹس"},
       level: "watch",
       severity: "high",
       title: "Road Hazard",
@@ -42,6 +45,7 @@ export function buildSeedAlerts(now = Date.now()): EnvironmentalAlert[] {
     },
     {
       id: "a-lowari",
+      ur: {title: "سردی اور برف باری کی ہدایت", area: "لواری پاس", message: "بلند سڑکوں پر ہلکی برف باری۔ ٹنل کھلی ہے؛ پرانی پاس روڈ پر پھسلن ہو سکتی ہے۔", risks: ["برفیلی سڑکیں"], source: "موسمی پیشگوئی"},
       level: "advisory",
       severity: "medium",
       title: "Cold & Snow Advisory",

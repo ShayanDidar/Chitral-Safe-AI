@@ -19,11 +19,17 @@ interface SeedReport {
   minutesAgo: number;
   likes: number;
   comments: { author: string; text: string; minutesAgo: number }[];
+  ur: { title: string; description: string; comments: string[] };
 }
 
 const SEED: SeedReport[] = [
   {
     id: "r-ayun-landslide",
+    ur: {
+      title: "ایون کے قریب لینڈ سلائیڈ سے سڑک کی ایک لین بند",
+      description: "ایون کے قریب لینڈ سلائیڈ سے سڑک کا ایک حصہ بند ہو گیا ہے۔ گزشتہ رات کی بارش کے بعد ملبہ اب بھی کھسک رہا ہے۔ گاڑیاں ایک ایک کر کے گزر رہی ہیں — آہستہ چلائیں۔",
+      comments: ["بیس منٹ پہلے یہاں سے گزرا۔ صرف چھوٹی گاڑیاں گزر رہی ہیں۔", "مقامی رضاکار نچلی طرف سے پتھر ہٹا رہے ہیں۔"],
+    },
     type: "landslide",
     severity: "high",
     status: "active",
@@ -43,6 +49,11 @@ const SEED: SeedReport[] = [
   },
   {
     id: "r-drosh-flood",
+    ur: {
+      title: "دروش کے قریب سڑک جزوی طور پر زیرِ آب",
+      description: "دروش کے قریب سڑک جزوی طور پر زیرِ آب ہے۔ ساتھ والے نالے کا پانی سڑک پر بہہ رہا ہے۔ ٹریفک آہستہ چل رہی ہے۔",
+      comments: ["کیا پل ٹرکوں کے لیے کھلا ہے؟", "جی ہاں، لیکن پل تک جانے والا راستہ تقریباً ایک فٹ پانی میں ہے۔"],
+    },
     type: "flood",
     severity: "high",
     status: "active",
@@ -62,6 +73,11 @@ const SEED: SeedReport[] = [
   },
   {
     id: "r-town-rain",
+    ur: {
+      title: "چترال ٹاؤن میں شدید بارش",
+      description: "علاقے میں شدید بارش شروع ہو گئی ہے۔ حدِ نگاہ کم ہو رہی ہے اور مین بازار کے قریب نالیاں ابل رہی ہیں۔",
+      comments: ["دنین میں بھی یہی حال ہے۔ پچھلے آدھے گھنٹے سے بہت تیز بارش۔", "شاہی مسجد کے قریب دریا کنارے والی سڑک سے گریز کریں۔", "سنگور کے کچھ حصوں میں بجلی بند ہے۔", "بارش اب کچھ کم ہو رہی ہے۔"],
+    },
     type: "heavy_rain",
     severity: "medium",
     status: "active",
@@ -83,6 +99,11 @@ const SEED: SeedReport[] = [
   },
   {
     id: "r-reshun-glacier",
+    ur: {
+      title: "ریشن میں گلیشیئر سے آنے والے نالے میں تیزی سے اضافہ",
+      description: "ریشن نالے کا پانی گدلا اور سیاہی مائل ہو گیا ہے اور تیزی سے بڑھ رہا ہے۔ بزرگوں کے مطابق یہ 2015 کے سیلاب جیسا لگ رہا ہے۔ نالے کے قریب رہنے والے خاندان احتیاطاً اونچی جگہ منتقل ہو رہے ہیں۔",
+      comments: ["براہ کرم بتائیں کہ بونی جانے والی مین سڑک متاثر ہے یا نہیں۔", "سڑک ابھی کھلی ہے لیکن پانی پلیا کے قریب پہنچ گیا ہے۔", "ویلج کمیٹی نے لوگوں کو نالے سے دور رہنے کی ہدایت کی ہے۔"],
+    },
     type: "glacier",
     severity: "critical",
     status: "active",
@@ -103,6 +124,11 @@ const SEED: SeedReport[] = [
   },
   {
     id: "r-mastuj-road",
+    ur: {
+      title: "بونی–مستوج روڈ پر بڑے پتھر",
+      description: "ڈھلوان گرنے کے بعد بونی–مستوج روڈ پر کئی بڑے پتھر آ گئے ہیں۔ سڑک گاڑیوں کے لیے بند ہے۔ لوڈر منگوایا گیا ہے۔",
+      comments: ["سڑک کب تک کھلنے کا امکان ہے؟"],
+    },
     type: "road_blockage",
     severity: "high",
     status: "active",
@@ -121,6 +147,11 @@ const SEED: SeedReport[] = [
   },
   {
     id: "r-gc-rockfall",
+    ur: {
+      title: "گرم چشمہ روڈ پر پتھر گر رہے ہیں",
+      description: "گرم چشمہ سے تقریباً 3 کلومیٹر پہلے سڑک پر چھوٹے پتھر گر رہے ہیں۔ سڑک کھلی ہے لیکن جلدی گزریں اور چٹان کے نیچے مت رکیں۔",
+      comments: ["شکریہ — آج دوپہر سفر کا ارادہ تھا۔"],
+    },
     type: "rockfall",
     severity: "medium",
     status: "active",
@@ -139,6 +170,11 @@ const SEED: SeedReport[] = [
   },
   {
     id: "r-booni-rain",
+    ur: {
+      title: "بونی میں مسلسل بارش",
+      description: "بونی میں صبح سویرے سے مسلسل بارش ہو رہی ہے۔ چھوٹے نالوں میں پانی معمول سے زیادہ ہے۔ ابھی تک کوئی نقصان نہیں ہوا لیکن لوگ نالوں پر نظر رکھے ہوئے ہیں۔",
+      comments: [],
+    },
     type: "heavy_rain",
     severity: "medium",
     status: "active",
@@ -155,6 +191,11 @@ const SEED: SeedReport[] = [
   },
   {
     id: "r-lowari-snow",
+    ur: {
+      title: "لواری ٹاپ کے قریب قبل از وقت برف باری",
+      description: "لواری کی بالائی سڑک پر ہلکی برف باری ہوئی ہے۔ ٹنل کا راستہ کھلا ہے، لیکن پرانی پاس روڈ پر پھسلن ہے۔ گرم کپڑے ساتھ رکھیں۔",
+      comments: ["آج صبح ٹنل میں ٹریفک معمول کے مطابق تھی۔"],
+    },
     type: "snowfall",
     severity: "medium",
     status: "monitoring",
@@ -173,6 +214,11 @@ const SEED: SeedReport[] = [
   },
   {
     id: "r-bumburet-flood",
+    ur: {
+      title: "بمبوریت میں نالے کی سطح میں معمولی اضافہ",
+      description: "بارش کے بعد بمبوریت نالے میں پانی معمول سے کچھ زیادہ ہے۔ پیدل پل ٹھیک ہیں۔ سیاح آج رات پانی کے قریب کیمپ نہ لگائیں۔",
+      comments: [],
+    },
     type: "flood",
     severity: "low",
     status: "monitoring",
@@ -189,6 +235,11 @@ const SEED: SeedReport[] = [
   },
   {
     id: "r-town-landslide",
+    ur: {
+      title: "چترال ٹاؤن کے قریب معمولی ملبہ صاف کر دیا گیا",
+      description: "چترال ٹاؤن کے اوپر لنک روڈ پر لینڈ سلائیڈ کا معمولی ملبہ صاف کر دیا گیا ہے۔ سڑک مکمل طور پر دوبارہ کھل گئی ہے۔",
+      comments: ["ٹی ایم اے ٹیم کا فوری کام کرنے پر شکریہ۔"],
+    },
     type: "landslide",
     severity: "low",
     status: "resolved",
@@ -207,6 +258,11 @@ const SEED: SeedReport[] = [
   },
   {
     id: "r-drosh-road",
+    ur: {
+      title: "دروش کے جنوب میں سڑک بہہ گئی",
+      description: "دروش کے جنوب میں سڑک کا ایک حصہ چڑھے ہوئے دریا میں بہہ گیا ہے۔ لواری کی طرف ٹریفک روک دی گئی ہے۔ براہ کرم پار کرنے کی کوشش نہ کریں۔",
+      comments: ["دروش کی طرف پولیس نے رکاوٹ لگا دی ہے۔", "پشاور سے آنے والی بسیں لواری پر انتظار کر رہی ہیں۔"],
+    },
     type: "road_blockage",
     severity: "critical",
     status: "active",
@@ -255,9 +311,11 @@ export function buildSeedReports(now = Date.now()): HazardReport[] {
         id: `${s.id}-c${i}`,
         author: c.author,
         text: c.text,
+        textUr: s.ur.comments[i],
         createdAt: minutesAgoIso(now, c.minutesAgo),
       })),
       source: "community" as const,
+      ur: { title: s.ur.title, description: s.ur.description },
     };
   }).sort((a, b) => b.reportedAt.localeCompare(a.reportedAt));
 }

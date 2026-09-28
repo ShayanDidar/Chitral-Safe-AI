@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import { HAZARD_TYPES, SEVERITIES } from "@/lib/hazards";
 import { cn } from "@/lib/utils";
-import type { HazardType, ReportStatus, Severity } from "@/types";
+import type { HazardType, Severity } from "@/types";
+
+export { SeverityBadge, SeverityMeter, HazardTypeLabel, StatusPill, DemoBadge } from "./badges";
 
 export const btn = {
   base: "inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 disabled:pointer-events-none",
@@ -61,48 +63,8 @@ export function PageHeader({
   );
 }
 
-/** Four-step bar meter so severity is readable without relying on colour. */
-export function SeverityMeter({ severity, className }: { severity: Severity; className?: string }) {
-  const meta = SEVERITIES[severity];
-  return (
-    <span className={cn("inline-flex items-end gap-[2px]", className)} aria-hidden>
-      {[1, 2, 3, 4].map((i) => (
-        <span
-          key={i}
-          className={cn("w-[3px] rounded-full", i <= meta.level ? meta.dot : "bg-current opacity-20")}
-          style={{ height: 4 + i * 2 }}
-        />
-      ))}
-    </span>
-  );
-}
 
-export function SeverityBadge({ severity, className }: { severity: Severity; className?: string }) {
-  const meta = SEVERITIES[severity];
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset",
-        meta.badge,
-        className,
-      )}
-    >
-      <SeverityMeter severity={severity} />
-      {meta.label}
-    </span>
-  );
-}
 
-export function HazardTypeLabel({ type, className }: { type: HazardType; className?: string }) {
-  const meta = HAZARD_TYPES[type];
-  const Icon = meta.icon;
-  return (
-    <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium text-slate-700", className)}>
-      <Icon className="size-3.5 text-slate-500" aria-hidden />
-      {meta.label}
-    </span>
-  );
-}
 
 export function HazardIcon({
   type,
@@ -133,33 +95,8 @@ export function HazardIcon({
   );
 }
 
-const STATUS: Record<ReportStatus, { label: string; cls: string }> = {
-  active: { label: "Active", cls: "bg-slate-900 text-white" },
-  monitoring: { label: "Monitoring", cls: "bg-slate-100 text-slate-700" },
-  resolved: { label: "Resolved", cls: "bg-green-50 text-green-800" },
-};
 
-export function StatusPill({ status, className }: { status: ReportStatus; className?: string }) {
-  return (
-    <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium", STATUS[status].cls, className)}>
-      {STATUS[status].label}
-    </span>
-  );
-}
 
-export function DemoBadge({ live, label }: { live: boolean; label?: string }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset",
-        live ? "bg-brand-50 text-brand-800 ring-brand-600/20" : "bg-slate-100 text-slate-600 ring-slate-300/60",
-      )}
-    >
-      <span className={cn("size-1.5 rounded-full", live ? "bg-brand-500" : "bg-slate-400")} />
-      {label ?? (live ? "Live" : "Demo data")}
-    </span>
-  );
-}
 
 export function Avatar({ name, className }: { name: string; className?: string }) {
   const palette = ["bg-brand-100 text-brand-800", "bg-sky-100 text-sky-800", "bg-amber-100 text-amber-800", "bg-rose-100 text-rose-800", "bg-violet-100 text-violet-800", "bg-slate-200 text-slate-700"];

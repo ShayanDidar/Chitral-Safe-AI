@@ -1,4 +1,7 @@
+"use client";
+
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -13,13 +16,14 @@ export function LogoMark({ className }: { className?: string }) {
 }
 
 export function Logo({ compact = false }: { compact?: boolean }) {
+  const { t } = useI18n();
   return (
     <span className="flex items-center gap-2.5">
       <LogoMark />
       {!compact && (
         <span className="leading-tight">
-          <span className="block text-[15px] font-semibold tracking-tight text-slate-900">Chitral Safe</span>
-          <span className="hidden text-[11px] text-slate-500 sm:block">Environmental monitoring</span>
+          <span className="block text-[15px] font-semibold tracking-tight text-slate-900">{t("app.name")}</span>
+          <span className="hidden text-[11px] text-slate-500 sm:block">{t("app.tagline")}</span>
         </span>
       )}
     </span>

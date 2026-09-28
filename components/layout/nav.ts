@@ -1,19 +1,20 @@
 import { CloudSun, House, Map, SquarePen, Sparkles, Users, type LucideIcon } from "lucide-react";
+import type { DictKey } from "@/lib/i18n/dictionary";
 
 export interface NavItem {
   href: string;
-  label: string;
-  short: string;
+  label: DictKey;
+  short: DictKey;
   icon: LucideIcon;
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Home", short: "Home", icon: House },
-  { href: "/map", label: "Live Map", short: "Map", icon: Map },
-  { href: "/report", label: "Report", short: "Report", icon: SquarePen },
-  { href: "/community", label: "Community", short: "Community", icon: Users },
-  { href: "/weather", label: "Weather", short: "Weather", icon: CloudSun },
-  { href: "/assistant", label: "AI Assistant", short: "Ask AI", icon: Sparkles },
+  { href: "/", label: "nav.home", short: "nav.home", icon: House },
+  { href: "/map", label: "nav.map", short: "nav.mapShort", icon: Map },
+  { href: "/report", label: "nav.report", short: "nav.report", icon: SquarePen },
+  { href: "/community", label: "nav.community", short: "nav.community", icon: Users },
+  { href: "/weather", label: "nav.weather", short: "nav.weather", icon: CloudSun },
+  { href: "/assistant", label: "nav.assistant", short: "nav.assistantShort", icon: Sparkles },
 ];
 
 export function isActive(pathname: string, href: string) {

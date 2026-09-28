@@ -10,6 +10,7 @@ import { buildSeedAlerts } from "@/data/alerts";
 import { findLocationByName, DEFAULT_LOCATION } from "@/data/locations";
 import { buildSeedReports } from "@/data/reports";
 import { HAZARD_TYPES } from "@/lib/hazards";
+import { HAZARD_TERMS, placeName } from "@/lib/i18n/terms";
 import { uid } from "@/lib/utils";
 import type { EnvironmentalAlert, HazardReport, NewReportInput, ReportComment } from "@/types";
 
@@ -48,6 +49,11 @@ export function createReport(input: NewReportInput): HazardReport {
     likedByMe: false,
     comments: [],
     source: "user",
+    // Descriptions are shown as the reporter wrote them; only the title is localized.
+    ur: {
+      title: `${placeName(locationName, "ur")} کے قریب ${HAZARD_TERMS[input.type].ur} کی اطلاع`,
+      description: input.description.trim(),
+    },
   };
 }
 

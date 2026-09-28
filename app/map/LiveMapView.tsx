@@ -10,10 +10,12 @@ import { btn } from "@/components/ui/primitives";
 import { MapLegend, MapView } from "@/components/map";
 import { HazardListItem } from "@/components/hazards/HazardCard";
 import { ReportFilters, useReportFilters } from "@/components/hazards/ReportFilters";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export function LiveMapView() {
   const params = useSearchParams();
   const { reports } = useHazardStore();
+  const { t } = useI18n();
   const { filters, setFilters, filtered, locations } = useReportFilters(reports);
   const initialFocus = params.get("focus");
   const [selectedId, setSelectedId] = useState<string | null>(initialFocus);
@@ -30,7 +32,7 @@ export function LiveMapView() {
   const list = (
     <div className="space-y-1">
       {filtered.length === 0 ? (
-        <p className="px-2 py-8 text-center text-sm text-slate-500">No reports match these filters.</p>
+        <p className="px-2 py-8 text-center text-sm text-slate-500">{t("map.none")}</p>
       ) : (
         filtered.map((r) => (
           <HazardListItem
@@ -50,17 +52,17 @@ export function LiveMapView() {
   return (
     <div className="flex h-[calc(100dvh-3.5rem-68px)] lg:h-[calc(100dvh-3.5rem)]">
       {/* Desktop side panel */}
-      <aside className="hidden w-[340px] shrink-0 flex-col border-r border-slate-200/80 bg-white lg:flex">
+      <aside className="hidden w-[340px] shrink-0 flex-col border-e border-slate-200/80 bg-white lg:flex">
         <div className="space-y-3 border-b border-slate-100 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold tracking-tight text-slate-900">Live Map</h1>
+              <h1 className="text-lg font-semibold tracking-tight text-slate-900">{t("map.title")}</h1>
               <p className="text-xs text-slate-500">
-                {activeCount} active · {filtered.length} shown of {reports.length} reports
+                {t("map.counts", { active: activeCount, shown: filtered.length, total: reports.length })}
               </p>
             </div>
             <Link href="/report" className={cn(btn.base, btn.primary, btn.sm)}>
-              <Plus className="size-3.5" aria-hidden /> Report
+              <Plus className="size-3.5" aria-hidden /> {t("map.report")}
             </Link>
           </div>
           <ReportFilters filters={filters} setFilters={setFilters} locations={locations} layout="stack" />
@@ -80,7 +82,7 @@ export function LiveMapView() {
             onClick={() => setSheetOpen(true)}
             className={cn(btn.base, btn.secondary, btn.md, "whitespace-nowrap shadow-float")}
           >
-            <ListFilter className="size-4" aria-hidden /> Filters & list
+            <ListFilter className="size-4" aria-hidden /> {t("map.filters")}
             <span className="rounded-full bg-slate-900 px-1.5 text-[11px] font-semibold text-white">{filtered.length}</span>
           </button>
         </div>
@@ -94,13 +96,13 @@ export function LiveMapView() {
             >
               <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                 <p className="text-sm font-semibold text-slate-900">
-                  {filtered.length} report{filtered.length === 1 ? "" : "s"}
+                  {t("map.nReports", { n: filtered.length })}
                 </p>
                 <button
                   type="button"
                   onClick={() => setSheetOpen(false)}
                   className="grid size-8 place-items-center rounded-full text-slate-500 hover:bg-slate-100"
-                  aria-label="Close"
+                  aria-label={t("common.close")}
                 >
                   <ChevronDown className="size-5" aria-hidden />
                 </button>

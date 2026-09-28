@@ -12,11 +12,13 @@ import { Page } from "@/components/layout/Page";
 import { CommunityPost } from "@/components/community/CommunityPost";
 import { ReportFilters, useReportFilters } from "@/components/hazards/ReportFilters";
 import { AlertCard } from "@/components/alerts/AlertCard";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export function CommunityView() {
   const params = useSearchParams();
   const highlight = params.get("highlight");
   const { reports, alerts } = useHazardStore();
+  const { t, hazard } = useI18n();
   const { filters, setFilters, filtered, locations } = useReportFilters(reports);
   const [flash, setFlash] = useState<string | null>(highlight);
 
@@ -34,7 +36,7 @@ export function CommunityView() {
 
   const byType = useMemo(() => {
     const active = reports.filter((r) => r.status !== "resolved");
-    return HAZARD_TYPE_LIST.map((t) => ({ type: t, count: active.filter((r) => r.type === t).length }))
+    return HAZARD_TYPE_LIST.map((type) => ({ type, count: active.filter((r) => r.type === type).length }))
       .filter((x) => x.count > 0)
       .sort((a, b) => b.count - a.count);
   }, [reports]);
@@ -43,11 +45,11 @@ export function CommunityView() {
   return (
     <Page>
       <PageHeader
-        title="Community"
-        subtitle="Environmental reports shared by people across Chitral. Reports are unverified — use your judgement."
+        title={t("community.title")}
+        subtitle={t("community.subtitle")}
         action={
           <Link href="/report" className={cn(btn.base, btn.primary, btn.md)}>
-            <Plus className="size-4" aria-hidden /> New report
+            <Plus className="size-4" aria-hidden /> {t("community.new")}
           </Link>
         }
       />
@@ -65,13 +67,13 @@ export function CommunityView() {
             <span className="grid size-9 place-items-center rounded-full bg-brand-50 text-brand-700">
               <Camera className="size-4" aria-hidden />
             </span>
-            Seen something? Share a photo and update with the community…
+            {t("community.prompt")}
           </Link>
 
           {filtered.length === 0 ? (
             <Card className="p-10 text-center">
-              <p className="text-sm font-medium text-slate-900">No reports match your filters</p>
-              <p className="mt-1 text-sm text-slate-500">Try clearing a filter or searching for another location.</p>
+              <p className="text-sm font-medium text-slate-900">{t("community.noMatch")}</p>
+              <p className="mt-1 text-sm text-slate-500">{t("community.noMatchSub")}</p>
             </Card>
           ) : (
             filtered.map((r) => <CommunityPost key={r.id} report={r} highlighted={flash === r.id} />)
@@ -80,7 +82,7 @@ export function CommunityView() {
 
         <aside className="hidden space-y-5 lg:sticky lg:top-20 lg:block lg:self-start">
           <Card className="p-4">
-            <SectionHeader title="Active reports by type" subtitle="Excludes resolved reports" />
+            <SectionHeader title={t("community.byType")} subtitle={t("community.byTypeSub")} />
             <ul className="mt-4 space-y-3">
               {byType.map(({ type, count }) => {
                 const Icon = HAZARD_TYPES[type].icon;
@@ -89,12 +91,12 @@ export function CommunityView() {
                     <button
                       type="button"
                       onClick={() => setFilters({ ...filters, type })}
-                      className="group w-full text-left"
+                      className="group w-full text-start"
                     >
                       <div className="flex items-center justify-between text-[13px]">
                         <span className="inline-flex items-center gap-2 font-medium text-slate-700 group-hover:text-slate-900">
                           <Icon className="size-4 text-slate-400" aria-hidden />
-                          {HAZARD_TYPES[type].label}
+                          {hazard(type)}
                         </span>
                         <span className="tabular-nums text-slate-500">{count}</span>
                       </div>
@@ -108,17 +110,17 @@ export function CommunityView() {
             </ul>
           </Card>
           <div className="space-y-3">
-            <SectionHeader title="Alerts" />
+            <SectionHeader title={t("alerts.short")} />
             {alerts.slice(0, 3).map((a) => (
               <AlertCard key={a.id} alert={a} compact />
             ))}
           </div>
           <div className="rounded-2xl bg-brand-900 p-5 text-white">
-            <p className="text-sm font-semibold">Reporting guidelines</p>
+            <p className="text-sm font-semibold">{t("community.guidelines")}</p>
             <ul className="mt-2 space-y-1.5 text-[13px] leading-snug text-brand-100">
-              <li>• Report only what you have seen yourself.</li>
-              <li>• Include a clear location and a photo if safe.</li>
-              <li>• Update the report in comments when things change.</li>
+              <li>• {t("community.g1")}</li>
+              <li>• {t("community.g2")}</li>
+              <li>• {t("community.g3")}</li>
             </ul>
           </div>
         </aside>

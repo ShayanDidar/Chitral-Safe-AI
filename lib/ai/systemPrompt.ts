@@ -50,6 +50,12 @@ Community reports are submitted by local people and are NOT officially verified.
 5. Keep answers short, clear and practical: a one-line answer first, then a few short bullet points if useful. Use simple English that is easy to read on a phone. Use **bold** sparingly and "- " for bullets. No tables, no headings.
 6. You may answer general questions about Chitral (geography, climate, travel) and about how to use the app.`;
 
+export function languageInstruction(lang: "en" | "ur") {
+  return lang === "ur"
+    ? "LANGUAGE: The user is using the app in Urdu. Always reply in clear, simple Urdu (Urdu script). Write place names in Urdu (e.g. چترال، ایون، دروش). Keep numbers as digits."
+    : "LANGUAGE: Reply in clear, simple English.";
+}
+
 export function formatContext(ctx: AIContext | null): string {
   if (!ctx) return "CURRENT APP DATA: not available.";
   return `CURRENT APP DATA (snapshot at ${ctx.generatedAt}; community reports are unverified):
@@ -59,4 +65,4 @@ ${JSON.stringify(ctx, null, 0)}`;
 export const RISK_INSTRUCTIONS = `Produce an informational environmental risk assessment for the requested scope using ONLY the CURRENT APP DATA.
 Respond with a single JSON object and nothing else, using exactly these keys:
 {"level":"Low"|"Moderate"|"High"|"Severe","score":0-100,"headline":"one short sentence","possibleRisks":["..."],"reason":"1-2 sentences citing the data","suggestedAction":"1-2 practical sentences"}
-Never claim certainty. The headline should describe conditions, e.g. "Rainfall is expected in several areas; some locations may face increased flood and landslide risk."`;
+Write headline, reason, suggestedAction and possibleRisks in the same language as the LANGUAGE instruction; keep the "level" value in English exactly as listed. Never claim certainty. The headline should describe conditions, e.g. "Rainfall is expected in several areas; some locations may face increased flood and landslide risk."`;

@@ -3,6 +3,7 @@
  * assistant still gives realistic, context-aware answers during a demo.
  */
 import type { AIContext, RiskAssessment, RiskLevel } from "@/types";
+import { RISK_TERMS, SEVERITY_TERMS, WEATHER_TERMS, hazardLabelFromEnglish, placeName, type Lang } from "@/lib/i18n/terms";
 
 type Report = AIContext["reports"][number];
 
@@ -29,17 +30,63 @@ function cap(s: string) {
 const DISCLAIMER =
   "_This is informational guidance based on community reports, not an official warning._";
 
-export function demoChat(question: string, ctx: AIContext | null): string {
+type Intent =
+  | "greeting"
+  | "glacier"
+  | "landslideWhy"
+  | "floodTodo"
+  | "weather"
+  | "roads"
+  | "active"
+  | "risk"
+  | "landslide"
+  | "flood"
+  | "howto"
+  | "chitral"
+  | "fallback";
+
+/** Keyword intent detection for English and Urdu questions. Order matters. */
+function detectIntent(question: string): Intent {
   const q = question.toLowerCase();
+  const has = (...words: string[]) => words.some((x) => q.includes(x));
+  const landslide = has("landslide", "لینڈ سلائیڈ", "لینڈسلائیڈ", "تودہ");
+  const flood = has("flood", "سیلاب");
+
+  if (/^\s*(hi|hello|hey|salam|assalam|aoa)\b/.test(q) || /^\s*(سلام|السلام|ہیلو)/.test(q)) return "greeting";
+  if (has("glacier", "glof", "glacial", "lake outburst", "melt", "گلیشیئر", "گلیشیر", "برفانی")) return "glacier";
+  if (landslide && has("why", "cause", "common", "happen", "reason", "کیوں", "وجہ", "عام")) return "landslideWhy";
+  if (flood && has("what should", "what do", "do if", "safe", "prepare", "near my", "کیا کر", "محفوظ", "قریب")) return "floodTodo";
+  if (has("weather", "temperature", "forecast", "rain today", "how hot", "how cold", "wind", "موسم", "درجہ حرارت", "گرمی", "سردی"))
+    return "weather";
+  if (has("road", "travel", "drive", "route", "lowari", "blocked", "journey", "open", "سڑک", "راستہ", "سفر", "لواری"))
+    return "roads";
+  if (has("risk", "aware", "danger", "threat", "worry", "concern", "آگاہ", "خطرناک")) return "risk";
+  if (
+    has("active", "right now", "current", "reported", "which area", "what area", "where", "happening", "hazards", "فعال", "ابھی", "کہاں", "کون سے خطرات")
+  )
+    return "active";
+  if (landslide) return "landslide";
+  if (flood) return "flood";
+  if (has("report", "how to use", "how do i", "app", "post", "رپورٹ کیسے", "ایپ")) return "howto";
+  if (has("chitral", "tirich", "kalash", "tell me about", "where is", "چترال", "ترچ میر", "کالاش")) return "chitral";
+  if (has("خطرہ", "خطرے", "خطرات")) return "risk";
+  return "fallback";
+}
+
+export function demoChat(question: string, ctx: AIContext | null, lang: Lang = "en"): string {
+  const intent = detectIntent(question);
+  return lang === "ur" ? demoChatUr(intent, ctx) : demoChatEn(intent, ctx);
+}
+
+function demoChatEn(intent: Intent, ctx: AIContext | null): string {
   const w = ctx?.weather;
   const act = active(ctx);
-  const has = (...words: string[]) => words.some((x) => q.includes(x));
 
-  if (/^\s*(hi|hello|hey|salam|assalam|aoa)\b/.test(q)) {
+  if (intent === "greeting") {
     return `Hello! I'm the Chitral Safe assistant. I can tell you about current weather, active hazard reports, road conditions and how to stay safe around Chitral.\n\nTry asking: "What hazards are active right now?"`;
   }
 
-  if (has("glacier", "glof", "glacial", "lake outburst", "melt")) {
+  if (intent === "glacier") {
     const g = act.filter((r) => r.type === "Glacier Hazard");
     return [
       "Glacier-related hazards are one of Chitral's most serious risks, especially in summer and during heatwaves.",
@@ -55,7 +102,7 @@ export function demoChat(question: string, ctx: AIContext | null): string {
     ].join("\n");
   }
 
-  if (has("landslide") && has("why", "cause", "common", "happen", "reason")) {
+  if (intent === "landslideWhy") {
     return [
       "Landslides are common in Chitral because of a combination of natural and human factors:",
       "",
@@ -69,7 +116,7 @@ export function demoChat(question: string, ctx: AIContext | null): string {
     ].join("\n");
   }
 
-  if (has("flood") && has("what should", "what do", "do if", "safe", "prepare", "near my")) {
+  if (intent === "floodTodo") {
     return [
       "If there is a flood near you, act early — floodwater in mountain valleys rises fast.",
       "",
@@ -83,7 +130,7 @@ export function demoChat(question: string, ctx: AIContext | null): string {
     ].join("\n");
   }
 
-  if (has("weather", "temperature", "forecast", "rain today", "how hot", "how cold", "wind")) {
+  if (intent === "weather") {
     if (!w) return "Weather data isn't available right now. Please check the Weather page.";
     const wettest = [...w.locations].sort((a, b) => b.rainProbability - a.rainProbability)[0];
     const tomorrow = w.next3Days[1];
@@ -105,7 +152,7 @@ export function demoChat(question: string, ctx: AIContext | null): string {
     ].join("\n");
   }
 
-  if (has("road", "travel", "drive", "route", "lowari", "blocked", "journey", "open")) {
+  if (intent === "roads") {
     const roads = act.filter((r) => ["Road Blockage", "Landslide", "Rockfall", "Flood", "Snowfall"].includes(r.type));
     if (!roads.length) return "There are no active road-related reports in the app right now. Conditions can change quickly, so check again before you travel.";
     return [
@@ -118,7 +165,7 @@ export function demoChat(question: string, ctx: AIContext | null): string {
     ].join("\n");
   }
 
-  if (has("active", "right now", "current", "reported", "which area", "what area", "where", "happening", "hazards")) {
+  if (intent === "active") {
     if (!act.length) return "There are no active hazard reports in the app right now.";
     const critical = act.filter((r) => r.severity === "critical" || r.severity === "high");
     const areas = [...new Set(act.map((r) => r.location))];
@@ -134,7 +181,7 @@ export function demoChat(question: string, ctx: AIContext | null): string {
     ].join("\n");
   }
 
-  if (has("risk", "aware", "danger", "threat", "worry", "concern")) {
+  if (intent === "risk") {
     const risk = demoRisk(ctx, null);
     return [
       "People in Chitral should be aware of these main environmental risks:",
@@ -151,7 +198,7 @@ export function demoChat(question: string, ctx: AIContext | null): string {
     ].join("\n");
   }
 
-  if (has("landslide")) {
+  if (intent === "landslide") {
     const ls = act.filter((r) => r.type === "Landslide");
     return [
       ls.length
@@ -164,7 +211,7 @@ export function demoChat(question: string, ctx: AIContext | null): string {
     ].join("\n");
   }
 
-  if (has("flood")) {
+  if (intent === "flood") {
     const fl = act.filter((r) => r.type === "Flood");
     return [
       fl.length
@@ -177,7 +224,7 @@ export function demoChat(question: string, ctx: AIContext | null): string {
     ].join("\n");
   }
 
-  if (has("report", "how to use", "how do i", "app", "post")) {
+  if (intent === "howto") {
     return [
       "You can report a hazard in a few steps — no login needed:",
       "",
@@ -189,7 +236,7 @@ export function demoChat(question: string, ctx: AIContext | null): string {
     ].join("\n");
   }
 
-  if (has("chitral", "tirich", "kalash", "tell me about", "where is")) {
+  if (intent === "chitral") {
     return [
       "Chitral is the northernmost region of Khyber Pakhtunkhwa, Pakistan, in the Hindu Kush mountains.",
       "",
@@ -212,8 +259,209 @@ export function demoChat(question: string, ctx: AIContext | null): string {
 }
 
 // ---------------------------------------------------------------------------
+// Urdu demo answers
 
-export function demoRisk(ctx: AIContext | null, scope: string | null): RiskAssessment {
+const urPlace = (name: string) => placeName(name, "ur");
+const urType = (label: string) => hazardLabelFromEnglish(label, "ur");
+const urSev = (s: Report["severity"]) => SEVERITY_TERMS[s].ur;
+const urAgo = (min: number) => (min < 60 ? `${min} منٹ پہلے` : `${Math.round(min / 60)} گھنٹے پہلے`);
+const UR_DISCLAIMER = "_یہ کمیونٹی رپورٹس پر مبنی معلوماتی رہنمائی ہے، سرکاری انتباہ نہیں۔_";
+const UR_NO_CERTAINTY = "موجودہ حالات خطرے میں اضافے کی نشاندہی کر سکتے ہیں، لیکن اسے یقینی پیشگوئی نہ سمجھا جائے۔";
+
+function urCondition(english: string) {
+  const c = english.toLowerCase();
+  if (c.includes("thunder")) return WEATHER_TERMS.thunderstorm;
+  if (c.includes("snow")) return WEATHER_TERMS.snow;
+  if (c.includes("heavy")) return WEATHER_TERMS["heavy-rain"];
+  if (c.includes("drizzle") || c.includes("light") || c.includes("shower")) return WEATHER_TERMS.drizzle;
+  if (c.includes("rain")) return WEATHER_TERMS.rain;
+  if (c.includes("fog")) return WEATHER_TERMS.fog;
+  if (c.includes("partly")) return WEATHER_TERMS["partly-cloudy"];
+  if (c.includes("cloud") || c.includes("overcast")) return WEATHER_TERMS.cloudy;
+  if (c.includes("clear") || c.includes("sun")) return WEATHER_TERMS.clear;
+  return english;
+}
+
+function demoChatUr(intent: Intent, ctx: AIContext | null): string {
+  const w = ctx?.weather;
+  const act = active(ctx);
+
+  switch (intent) {
+    case "greeting":
+      return "السلام علیکم! میں چترال سیف کا معاون ہوں۔ میں آپ کو موجودہ موسم، فعال خطرات کی رپورٹس، سڑکوں کی صورتحال اور چترال میں محفوظ رہنے کے بارے میں بتا سکتا ہوں۔\n\nپوچھ کر دیکھیں: \"ابھی کون سے خطرات فعال ہیں؟\"";
+
+    case "glacier": {
+      const g = act.filter((r) => r.type === "Glacier Hazard");
+      return [
+        "گلیشیئر سے جڑے خطرات چترال کے سب سے سنگین خطرات میں سے ہیں، خاص طور پر گرمیوں اور شدید گرمی کی لہر کے دوران۔",
+        "",
+        "- **وجہ:** گرم موسم میں گلیشیئر تیزی سے پگھلتے ہیں؛ پانی کمزور ملبے کے بند کے پیچھے جھیلوں میں جمع ہو جاتا ہے جو اچانک ٹوٹ سکتا ہے (GLOF)۔",
+        "- **کہاں:** گلیشیئر سے آنے والی ذیلی وادیاں — ریشن، گولین، بونی اور اپر چترال کے کئی علاقے پہلے متاثر ہو چکے ہیں۔",
+        "- **خطرے کی علامات:** گدلے پانی میں اچانک اضافہ، اوپر سے گرج کی آواز، یا نالے میں ملبہ۔",
+        g.length
+          ? `- **اس وقت:** گلیشیئر سے متعلق ${g.length} رپورٹ — ${g.map((r) => `${urPlace(r.location)} (${urSev(r.severity)})`).join("، ")}۔ نالے سے دور رہیں۔`
+          : "- **اس وقت:** ایپ میں گلیشیئر سے متعلق کوئی رپورٹ نہیں۔",
+        "",
+        UR_NO_CERTAINTY,
+      ].join("\n");
+    }
+
+    case "landslideWhy":
+      return [
+        "چترال میں لینڈ سلائیڈ قدرتی اور انسانی عوامل کے ملاپ کی وجہ سے عام ہیں:",
+        "",
+        "- **ڈھلوان علاقہ:** ہندوکش کی وادیوں کی ڈھلوانیں بہت اونچی اور تیز ہیں۔",
+        "- **کمزور، ٹوٹی ہوئی چٹانیں اور ڈھیلا ملبہ** جو گیلا ہونے پر اپنی مضبوطی کھو دیتا ہے۔",
+        "- **شدید بارش اور برف کا پگھلنا** مٹی کو سیراب کر کے ڈھلوان کا وزن بڑھا دیتے ہیں۔",
+        "- **زلزلے:** یہ خطہ زلزلوں کی زد میں ہے جس سے وقت کے ساتھ ڈھلوانیں کمزور ہوتی ہیں۔",
+        "- **سڑکوں کی کٹائی اور جنگلات کا خاتمہ** ڈھلوان کی بنیاد کو کمزور کرتے ہیں۔",
+        "",
+        "لینڈ سلائیڈ کا امکان شدید بارش کے دوران اور فوراً بعد سب سے زیادہ ہوتا ہے — اسی لیے آج کی بارش کی پیشگوئی اہم ہے۔",
+      ].join("\n");
+
+    case "floodTodo":
+      return [
+        "اگر آپ کے قریب سیلاب ہو تو جلد قدم اٹھائیں — پہاڑی وادیوں میں پانی بہت تیزی سے بڑھتا ہے۔",
+        "",
+        "- **فوراً اونچی جگہ پر چلے جائیں۔** پانی کے گھر تک پہنچنے کا انتظار نہ کریں۔",
+        "- **دریا اور نالوں سے دور رہیں**، اور بہتے پانی کو کبھی پیدل یا گاڑی سے پار نہ کریں۔",
+        "- **ضروری چیزیں ساتھ لیں:** شناختی دستاویزات، ادویات، چارج شدہ فون، پانی اور گرم کپڑے۔",
+        "- **دوسروں کی مدد کریں:** بزرگ پڑوسیوں اور بچوں کا خیال رکھیں۔",
+        "- **ایپ میں رپورٹ کریں** تاکہ قریبی لوگ خبردار ہو جائیں۔",
+        "",
+        "اگر جان کو خطرہ ہو تو **فوراً ریسکیو 1122 کو کال کریں**۔",
+      ].join("\n");
+
+    case "weather": {
+      if (!w) return "اس وقت موسم کا ڈیٹا دستیاب نہیں۔ براہ کرم موسم کا صفحہ دیکھیں۔";
+      const wettest = [...w.locations].sort((a, b) => b.rainProbability - a.rainProbability)[0];
+      const tomorrow = w.next3Days[1];
+      const wind = w.wind.replace("km/h", "کلومیٹر فی گھنٹہ");
+      return [
+        `${urPlace(w.location)} میں اس وقت **${w.temperature}°C اور ${urCondition(w.condition)}** ہے، اور آج **بارش کا امکان ${w.rainProbability}%** ہے۔`,
+        "",
+        `- نمی ${w.humidity}%، ہوا ${wind}۔`,
+        `- آج متوقع بارش: تقریباً ${w.precipitationMm} ملی میٹر۔`,
+        ...(wettest ? [`- بارش کا سب سے زیادہ امکان: **${urPlace(wettest.name)}** (${wettest.rainProbability}%)۔`] : []),
+        ...(tomorrow
+          ? [`- کل: ${urCondition(tomorrow.condition)}، ${tomorrow.low} سے ${tomorrow.high}°C، بارش کا امکان ${tomorrow.rainProbability}%۔`]
+          : []),
+        "",
+        w.rainProbability >= 60
+          ? "اتنی بارش کی توقع کے ساتھ ندی نالوں میں پانی بڑھ سکتا ہے اور ڈھلوانیں غیر مستحکم ہو سکتی ہیں۔ دریا کے کناروں سے دور رہیں اور سفر سے پہلے سڑکوں کی رپورٹس دیکھیں۔"
+          : "حالات کافی حد تک پرسکون ہیں، لیکن پہاڑی موسم تیزی سے بدل سکتا ہے۔",
+      ].join("\n");
+    }
+
+    case "roads": {
+      const roads = act.filter((r) => ["Road Blockage", "Landslide", "Rockfall", "Flood", "Snowfall"].includes(r.type));
+      if (!roads.length) return "اس وقت ایپ میں سڑکوں سے متعلق کوئی فعال رپورٹ نہیں۔ حالات تیزی سے بدل سکتے ہیں، اس لیے سفر سے پہلے دوبارہ دیکھ لیں۔";
+      return [
+        `**${roads.length} فعال رپورٹس** ایسی ہیں جو سڑکوں کو متاثر کر سکتی ہیں:`,
+        "",
+        ...roads.slice(0, 6).map((r) => `- **${urPlace(r.location)}** — ${urType(r.type)}، شدت: ${urSev(r.severity)} (${urAgo(r.reportedMinutesAgo)})`),
+        "",
+        "اضافی وقت رکھیں، کمزور ڈھلوانوں کے نیچے نہ رکیں، اور زیرِ آب یا بہہ جانے والے حصوں کو پار نہ کریں۔",
+        UR_DISCLAIMER,
+      ].join("\n");
+    }
+
+    case "active": {
+      if (!act.length) return "اس وقت ایپ میں کوئی فعال خطرے کی رپورٹ نہیں۔";
+      const serious = act.filter((r) => r.severity === "critical" || r.severity === "high");
+      const areas = [...new Set(act.map((r) => urPlace(r.location)))];
+      return [
+        `${areas.length} علاقوں میں **${act.length} فعال خطرات کی رپورٹس** ہیں: ${areas.join("، ")}۔`,
+        "",
+        ...act.slice(0, 7).map((r) => `- **${urType(r.type)}** — ${urPlace(r.location)}، شدت: ${urSev(r.severity)} (${urAgo(r.reportedMinutesAgo)})`),
+        "",
+        serious.length
+          ? `سب سے سنگین صورتحال **${[...new Set(serious.map((r) => urPlace(r.location)))].slice(0, 3).join("، ")}** میں ہے۔ ممکن ہو تو ان علاقوں سے دور رہیں۔`
+          : "زیادہ تر رپورٹس کم یا درمیانی شدت کی ہیں۔",
+        UR_DISCLAIMER,
+      ].join("\n");
+    }
+
+    case "risk": {
+      const risk = demoRisk(ctx, null, "ur");
+      return [
+        "چترال کے لوگوں کو ان اہم ماحولیاتی خطرات سے آگاہ رہنا چاہیے:",
+        "",
+        "- **اچانک سیلاب** — شدید بارش کے بعد نالوں اور دریائے چترال کے ساتھ۔",
+        "- **لینڈ سلائیڈ اور پتھر گرنا** — ایون، گرم چشمہ اور بونی–مستوج جیسی ڈھلوان سڑکوں پر۔",
+        "- **گلیشیئر جھیلوں کے سیلاب (GLOF)** — گرم موسم میں گلیشیئر والی وادیوں میں۔",
+        "- **سڑکوں کی بندش** — جس سے دیہات گھنٹوں یا دنوں تک کٹ سکتے ہیں۔",
+        "- **شدید برف باری اور برفانی تودے** — سردیوں میں بلند دروں پر۔",
+        "",
+        `**اس وقت:** مجموعی خطرہ **${RISK_TERMS[risk.level].ur}** نظر آتا ہے۔ ${risk.reason}`,
+        "",
+        UR_NO_CERTAINTY,
+      ].join("\n");
+    }
+
+    case "landslide": {
+      const ls = act.filter((r) => r.type === "Landslide");
+      return [
+        ls.length
+          ? `لینڈ سلائیڈ کی ${ls.length} فعال رپورٹس: ${ls.map((r) => `${urPlace(r.location)} (${urSev(r.severity)})`).join("، ")}۔`
+          : "اس وقت لینڈ سلائیڈ کی کوئی فعال رپورٹ نہیں۔",
+        "",
+        "- ڈھلوان اور اس کے بالکل نیچے والی سڑک سے دور رہیں۔",
+        "- دراڑوں، جھکتے درختوں، گرتے کنکروں یا گدلے پانی پر نظر رکھیں — یہ ڈھلوان کھسکنے کی علامات ہیں۔",
+        "- بارش کے بعد لینڈ سلائیڈ دوبارہ ہو سکتی ہے، اس لیے علاقہ صاف ہونے کا انتظار کریں۔",
+      ].join("\n");
+    }
+
+    case "flood": {
+      const fl = act.filter((r) => r.type === "Flood");
+      return [
+        fl.length
+          ? `سیلاب کی ${fl.length} فعال رپورٹس: ${fl.map((r) => `${urPlace(r.location)} (${urSev(r.severity)})`).join("، ")}۔`
+          : "اس وقت سیلاب کی کوئی فعال رپورٹ نہیں۔",
+        "",
+        "- دریا کے کناروں اور نالوں سے دور رہیں، خاص طور پر شدید بارش کے بعد۔",
+        "- بہتے پانی کو کبھی پار نہ کریں۔",
+        "- اگر قریب پانی بڑھ رہا ہو تو اونچی جگہ پر جائیں اور ضرورت ہو تو ریسکیو 1122 کو کال کریں۔",
+      ].join("\n");
+    }
+
+    case "howto":
+      return [
+        "آپ چند آسان مراحل میں خطرے کی رپورٹ کر سکتے ہیں — لاگ اِن کی ضرورت نہیں:",
+        "",
+        "- مینو سے **رپورٹ** کھولیں۔",
+        "- خطرے کی قسم اور شدت منتخب کریں۔",
+        "- مقام لکھیں یا نقشے پر ٹیپ کریں۔",
+        "- تصویر اور مختصر تفصیل شامل کریں۔",
+        "- جمع کریں — آپ کی رپورٹ فوراً نقشے اور کمیونٹی فیڈ پر نظر آئے گی۔",
+      ].join("\n");
+
+    case "chitral":
+      return [
+        "چترال خیبر پختونخوا کا سب سے شمالی علاقہ ہے جو ہندوکش کے پہاڑوں میں واقع ہے۔",
+        "",
+        "- یہ **لوئر چترال** (چترال ٹاؤن، دروش، ایون، گرم چشمہ، کالاش وادیاں) اور **اپر چترال** (بونی، مستوج، ریشن وغیرہ) میں تقسیم ہے۔",
+        "- یہاں ہندوکش کی سب سے اونچی چوٹی **ترچ میر (7,708 میٹر)** واقع ہے۔",
+        "- یہاں پہنچنے کا اہم راستہ **لواری ٹنل** ہے؛ کئی سڑکیں ڈھلوانوں کے نیچے دریاؤں کے ساتھ گزرتی ہیں۔",
+        "- ڈھلوان علاقے، گلیشیئرز اور شدید بارشوں کی وجہ سے یہاں سیلاب، لینڈ سلائیڈ اور گلیشیئر کے خطرات عام ہیں۔",
+      ].join("\n");
+
+    default:
+      return [
+        "میں چترال میں ماحولیاتی حالات اور حفاظت کے بارے میں مدد کر سکتا ہوں۔ مثال کے طور پر آپ پوچھ سکتے ہیں:",
+        "",
+        "- \"ابھی کون سے خطرات فعال ہیں؟\"",
+        "- \"آج چترال کا موسم کیسا ہے؟\"",
+        "- \"کون سی سڑکیں متاثر ہیں؟\"",
+        "- \"چترال میں لینڈ سلائیڈ کیوں عام ہیں؟\"",
+        "- \"اگر میرے علاقے کے قریب سیلاب آئے تو مجھے کیا کرنا چاہیے؟\"",
+      ].join("\n");
+  }
+}
+
+// ---------------------------------------------------------------------------
+
+export function demoRisk(ctx: AIContext | null, scope: string | null, lang: Lang = "en"): RiskAssessment {
   const act = active(ctx).filter((r) => !scope || r.location === scope);
   const w = ctx?.weather;
   const locWeather = scope ? w?.locations.find((l) => l.name === scope) : undefined;
@@ -241,34 +489,68 @@ export function demoRisk(ctx: AIContext | null, scope: string | null): RiskAsses
   if (!risks.size) risks.add("No significant risks indicated");
 
   const serious = act.filter((r) => r.severity === "high" || r.severity === "critical");
+  const roadIssue = act.find((r) => r.type === "Road Blockage" || r.type === "Landslide");
+  const place = scope ?? "Chitral";
+  const text = lang === "ur" ? riskTextUr({ rain, act, serious, level, scope, roadIssue }) : riskTextEn({ rain, act, serious, level, scope, roadIssue });
+
+  return {
+    level,
+    score,
+    headline: text.headline,
+    possibleRisks: [...risks].slice(0, 4),
+    reason: text.reason,
+    suggestedAction: text.suggestedAction,
+    scope: place,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+interface RiskTextInput {
+  rain: number;
+  act: Report[];
+  serious: Report[];
+  level: RiskLevel;
+  scope: string | null;
+  roadIssue: Report | undefined;
+}
+
+function riskTextEn({ rain, act, serious, level, scope, roadIssue }: RiskTextInput) {
   const place = scope ?? "Chitral";
   const reason =
     `${rain >= 60 ? "Heavy rainfall" : rain >= 35 ? "Possible rainfall" : "Mostly dry weather"} (${rain}% chance) ` +
     (act.length
       ? `combined with ${act.length} active community report${act.length > 1 ? "s" : ""}${serious.length ? `, including ${serious.length} high or critical,` : ""} may indicate ${level === "Low" ? "limited" : "increased"} local risk.`
       : "and no active community reports suggest limited local risk.");
-
-  const roadIssue = act.find((r) => r.type === "Road Blockage" || r.type === "Landslide");
   const suggestedAction =
     level === "Low"
       ? "Conditions look manageable. Keep an eye on the forecast and community reports."
       : `Monitor local alerts${roadIssue ? ` and avoid roads currently reported as blocked, such as near ${roadIssue.location}` : ""}. Stay away from riverbanks and nullahs during heavy rain.`;
-
   const headline =
     rain >= 60
       ? `Rainfall is expected in ${scope ? place : "several areas"} today. ${scope ? "This area" : "Some locations"} may have an increased risk of flooding and landslides.`
       : act.length
         ? `${act.length} active hazard report${act.length > 1 ? "s" : ""} in ${place}. Travel with care and check updates.`
         : `No major hazards reported in ${place}. Conditions look calm.`;
+  return { headline, reason, suggestedAction };
+}
 
-  return {
-    level,
-    score,
-    headline,
-    possibleRisks: [...risks].slice(0, 4),
-    reason,
-    suggestedAction,
-    scope: place,
-    generatedAt: new Date().toISOString(),
-  };
+function riskTextUr({ rain, act, serious, level, scope, roadIssue }: RiskTextInput) {
+  const place = urPlace(scope ?? "Chitral");
+  const weather = rain >= 60 ? "شدید بارش" : rain >= 35 ? "ممکنہ بارش" : "زیادہ تر خشک موسم";
+  const reason =
+    `${weather} (امکان ${rain}%) ` +
+    (act.length
+      ? `اور ${act.length} فعال کمیونٹی رپورٹس${serious.length ? `، جن میں ${serious.length} زیادہ یا سنگین شدت کی ہیں،` : ""} مل کر ${level === "Low" ? "محدود" : "بڑھتے ہوئے"} مقامی خطرے کی نشاندہی کر سکتی ہیں۔`
+      : "اور کسی فعال کمیونٹی رپورٹ کا نہ ہونا محدود مقامی خطرے کی طرف اشارہ کرتا ہے۔");
+  const suggestedAction =
+    level === "Low"
+      ? "حالات قابو میں نظر آتے ہیں۔ موسم کی پیشگوئی اور کمیونٹی رپورٹس پر نظر رکھیں۔"
+      : `مقامی انتباہات پر نظر رکھیں${roadIssue ? ` اور بند بتائی گئی سڑکوں، جیسے ${urPlace(roadIssue.location)} کے قریب، سے گریز کریں` : ""}۔ شدید بارش کے دوران دریا کے کناروں اور نالوں سے دور رہیں۔`;
+  const headline =
+    rain >= 60
+      ? `آج ${scope ? place : "کئی علاقوں"} میں بارش متوقع ہے۔ ${scope ? "اس علاقے" : "کچھ مقامات"} میں سیلاب اور لینڈ سلائیڈ کا خطرہ بڑھ سکتا ہے۔`
+      : act.length
+        ? `${place} میں ${act.length} فعال خطرات کی رپورٹس ہیں۔ احتیاط سے سفر کریں اور تازہ صورتحال دیکھتے رہیں۔`
+        : `${place} میں کوئی بڑا خطرہ رپورٹ نہیں ہوا۔ حالات پرسکون نظر آتے ہیں۔`;
+  return { headline, reason, suggestedAction };
 }

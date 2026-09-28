@@ -2,7 +2,7 @@ import { chat } from "@/services/aiService";
 import type { AIContext, ChatMessage } from "@/types";
 
 export async function POST(request: Request) {
-  let body: { messages?: ChatMessage[]; context?: AIContext | null };
+  let body: { messages?: ChatMessage[]; context?: AIContext | null; lang?: string };
   try {
     body = await request.json();
   } catch {
@@ -19,6 +19,6 @@ export async function POST(request: Request) {
   }
 
   const context = body.context && JSON.stringify(body.context).length < 40_000 ? body.context : null;
-  const result = await chat(messages, context);
+  const result = await chat(messages, context, body.lang === "ur" ? "ur" : "en");
   return Response.json(result);
 }

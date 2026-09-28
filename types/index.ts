@@ -29,6 +29,8 @@ export interface ReportComment {
   id: string;
   author: string;
   text: string;
+  /** Urdu translation (seed data); user comments are shown as written. */
+  textUr?: string;
   createdAt: string; // ISO timestamp
 }
 
@@ -50,6 +52,8 @@ export interface HazardReport {
   comments: ReportComment[];
   /** "user" = created in this browser session via the Report form */
   source: "community" | "user";
+  /** Urdu title/description. */
+  ur?: { title: string; description: string };
 }
 
 export interface NewReportInput {
@@ -75,6 +79,7 @@ export interface EnvironmentalAlert {
   issuedAt: string;
   source: string;
   relatedReportId?: string;
+  ur?: { title: string; area: string; message: string; risks: string[]; source: string };
 }
 
 export type WeatherIcon =

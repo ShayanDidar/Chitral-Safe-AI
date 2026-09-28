@@ -15,6 +15,7 @@ import { WeatherIconGlyph } from "@/components/weather/WeatherIconGlyph";
 import { RiskDisclaimer, RiskLevelPill, RiskScoreBar } from "@/components/ai/RiskSummary";
 import { AskAIPrompt } from "@/components/ai/AskAIPrompt";
 import { Page } from "@/components/layout/Page";
+import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export default function HomePage() {
   const { reports, weather, alerts } = useHazardStore();
@@ -24,41 +25,42 @@ export default function HomePage() {
   const high = active.filter((r) => r.severity === "high").length;
   const mine = reports.filter((r) => r.source === "user").length;
   const c = weather.current;
+  const { t, condition } = useI18n();
 
   return (
     <Page>
       <PageHeader
-        title="Chitral Environmental Overview"
-        subtitle="Live community reports, weather and alerts across Chitral."
+        title={t("home.title")}
+        subtitle={t("home.subtitle")}
         action={
           <div className="flex gap-2">
             <Link href="/map" className={cn(btn.base, btn.secondary, btn.md)}>
-              Open map
+              {t("common.openMap")}
             </Link>
             <Link href="/report" className={cn(btn.base, btn.primary, btn.md)}>
-              <Plus className="size-4" aria-hidden /> Report a hazard
+              <Plus className="size-4" aria-hidden /> {t("home.reportHazard")}
             </Link>
           </div>
         }
       />
 
       {/* Environmental status */}
-      <section aria-label="Environmental status" className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      <section aria-label={t("status.title")} className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <StatTile
-          label="Temperature"
+          label={t("stat.temperature")}
           icon={<Thermometer className="size-4" aria-hidden />}
           value={`${c.temperature}°C`}
-          sub={`H ${c.high}° · L ${c.low}° · Feels ${c.feelsLike}°`}
+          sub={t("stat.tempSub", { h: c.high, l: c.low, f: c.feelsLike })}
         />
         <StatTile
-          label="Weather"
+          label={t("stat.weather")}
           icon={<WeatherIconGlyph icon={c.icon} className="size-4" />}
-          value={c.condition}
+          value={condition(c.icon, c.condition)}
           valueClass="text-xl sm:text-2xl"
-          sub={`Humidity ${c.humidity}% · Wind ${c.windSpeed} km/h`}
+          sub={t("stat.weatherSub", { h: c.humidity, w: c.windSpeed })}
         />
         <StatTile
-          label="Rain probability"
+          label={t("stat.rain")}
           icon={<CloudRain className="size-4" aria-hidden />}
           value={`${c.rainProbability}%`}
           sub={
@@ -66,19 +68,19 @@ export default function HomePage() {
               <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100">
                 <span className="block h-full rounded-full bg-sky-600" style={{ width: `${c.rainProbability}%` }} />
               </span>
-              <span className="mt-1.5 block">~{c.precipitationMm} mm expected today</span>
+              <span className="mt-1.5 block">{t("stat.rainSub", { mm: c.precipitationMm })}</span>
             </span>
           }
         />
         <StatTile
-          label="Active hazards"
+          label={t("stat.active")}
           icon={<TriangleAlert className="size-4" aria-hidden />}
           value={String(active.length)}
           sub={
             <span className="flex flex-wrap items-center gap-x-2">
-              {serious > 0 && <span className="font-medium text-red-700">{serious} critical</span>}
-              {high > 0 && <span className="font-medium text-orange-700">{high} high</span>}
-              {mine > 0 && <span className="font-medium text-brand-700">{mine} new from you</span>}
+              {serious > 0 && <span className="font-medium text-red-700">{t("stat.critical", { n: serious })}</span>}
+              {high > 0 && <span className="font-medium text-orange-700">{t("stat.high", { n: high })}</span>}
+              {mine > 0 && <span className="font-medium text-brand-700">{t("stat.mine", { n: mine })}</span>}
             </span>
           }
           accent
@@ -93,9 +95,9 @@ export default function HomePage() {
           <div className="h-[340px] sm:h-[440px]">
             <MapView reports={reports} compact />
           </div>
-          <div className="pointer-events-none absolute inset-x-3 top-3 z-[500] flex justify-end">
+          <div className="pointer-events-none absolute right-3 top-3 z-[500]">
             <Link href="/map" className={cn(btn.base, btn.secondary, btn.sm, "pointer-events-auto shadow-float")}>
-              <Maximize2 className="size-3.5" aria-hidden /> Full map
+              <Maximize2 className="size-3.5" aria-hidden /> {t("home.fullMap")}
             </Link>
           </div>
           <MapLegend horizontal className="absolute bottom-3 left-3 z-[500] hidden sm:block" />
@@ -103,8 +105,8 @@ export default function HomePage() {
 
         <div className="flex flex-col gap-3">
           <SectionHeader
-            title="Environmental alerts"
-            subtitle={`${alerts.length} active across Chitral`}
+            title={t("alerts.title")}
+            subtitle={t("alerts.count", { n: alerts.length })}
           />
           <AlertCard alert={alerts[0]} />
           {alerts.slice(1, 3).map((a) => (
@@ -116,11 +118,11 @@ export default function HomePage() {
       {/* Recent reports */}
       <section className="space-y-3">
         <SectionHeader
-          title="Recent community reports"
-          subtitle="Submitted by people across Chitral"
+          title={t("home.recent")}
+          subtitle={t("home.recentSub")}
           action={
             <Link href="/community" className="inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800">
-              View all <ArrowRight className="size-3.5" aria-hidden />
+              {t("common.viewAll")} <ArrowRight className="size-3.5 rtl:-scale-x-100" aria-hidden />
             </Link>
           }
         />
@@ -134,7 +136,7 @@ export default function HomePage() {
       <AskAIPrompt />
 
       <p className="text-center text-xs text-slate-400">
-        Weather {weather.source === "demo" ? "(demo data)" : "from Open-Meteo"} updated <TimeAgo iso={weather.updatedAt} />
+        {t(weather.source === "demo" ? "home.weatherDemo" : "home.weatherLive")} <TimeAgo iso={weather.updatedAt} />
       </p>
     </Page>
   );
@@ -172,6 +174,7 @@ function StatTile({
 }
 
 function StatusSummary() {
+  const { t, riskName, bidi } = useI18n();
   const { risk, loading } = useChitralRisk();
   const a = risk?.assessment;
 
@@ -184,18 +187,20 @@ function StatusSummary() {
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm font-semibold text-slate-900">Environmental status</p>
+              <p className="text-sm font-semibold text-slate-900">{t("status.title")}</p>
               {a && <RiskLevelPill level={a.level} />}
-              {risk && <DemoBadge live={risk.mode === "live"} label={risk.mode === "live" ? "AI analysis" : "Demo analysis"} />}
+              {risk && <DemoBadge live={risk.mode === "live"} label={t(risk.mode === "live" ? "status.aiAnalysis" : "status.demoAnalysis")} />}
             </div>
             {a ? (
               <>
-                <p className="mt-1.5 text-[15px] leading-relaxed text-slate-700">{a.headline}</p>
+                <p dir="auto" className="mt-1.5 text-[15px] leading-relaxed text-slate-700">
+                  {bidi(a.headline)}
+                </p>
                 <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                  <span className="text-xs text-slate-500">Possible risks:</span>
+                  <span className="text-xs text-slate-500">{t("status.possibleRisks")}</span>
                   {a.possibleRisks.map((r) => (
                     <span key={r} className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                      {r}
+                      {riskName(r)}
                     </span>
                   ))}
                 </div>
@@ -211,7 +216,7 @@ function StatusSummary() {
         <div className="flex flex-col gap-3 lg:w-64">
           {a ? <RiskScoreBar score={a.score} level={a.level} /> : <div className="h-12 animate-pulse rounded bg-slate-100" />}
           <Link href="/assistant" className={cn(btn.base, btn.secondary, btn.sm)}>
-            <Sparkles className="size-3.5 text-brand-700" aria-hidden /> Full risk analysis
+            <Sparkles className="size-3.5 text-brand-700" aria-hidden /> {t("status.fullAnalysis")}
           </Link>
         </div>
       </div>

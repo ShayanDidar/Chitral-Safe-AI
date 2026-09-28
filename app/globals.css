@@ -53,6 +53,22 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ---------------- Urdu (RTL) ---------------- */
+html[lang="ur"] body {
+  font-family: var(--font-urdu), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.7;
+}
+/* Letter-spacing breaks the joined Urdu script */
+html[lang="ur"] * {
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+/* Numbers, times and codes stay left-to-right inside Urdu text */
+html[lang="ur"] .tabular-nums {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
 /* Hide scrollbar for horizontal carousels while keeping them scrollable */
 .no-scrollbar {
   scrollbar-width: none;
@@ -84,6 +100,7 @@ body {
 }
 
 .leaflet-container {
+  direction: ltr;
   font-family: inherit;
   background: #e8ecea;
   z-index: 0;

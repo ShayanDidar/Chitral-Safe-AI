@@ -3,7 +3,7 @@ import { HAZARD_TYPES, SEVERITIES } from "@/lib/hazards";
 import { cn } from "@/lib/utils";
 import type { HazardType, Severity } from "@/types";
 
-export { SeverityBadge, SeverityMeter, HazardTypeLabel, StatusPill, DemoBadge } from "./badges";
+export { SeverityBadge, SeverityMeter, HazardTypeLabel, StatusPill, DemoBadge, ReviewBadge, ReportIcon, ReportTag } from "./badges";
 
 export const btn = {
   base: "inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 disabled:pointer-events-none",
@@ -98,7 +98,11 @@ export function HazardIcon({
 
 
 
-export function Avatar({ name, className }: { name: string; className?: string }) {
+export function Avatar({ name, src, className }: { name: string; src?: string | null; className?: string }) {
+  if (src) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt="" className={cn("size-9 shrink-0 rounded-full object-cover", className)} />;
+  }
   const palette = ["bg-brand-100 text-brand-800", "bg-sky-100 text-sky-800", "bg-amber-100 text-amber-800", "bg-rose-100 text-rose-800", "bg-violet-100 text-violet-800", "bg-slate-200 text-slate-700"];
   const idx = [...name].reduce((s, c) => s + c.charCodeAt(0), 0) % palette.length;
   const initials = name

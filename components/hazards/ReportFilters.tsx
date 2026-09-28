@@ -2,14 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { ChevronDown, Search, X } from "lucide-react";
-import { HAZARD_TYPES, HAZARD_TYPE_LIST, SEVERITIES, SEVERITY_LIST } from "@/lib/hazards";
+import { HAZARD_TYPE_LIST, SEVERITIES, SEVERITY_LIST } from "@/lib/hazards";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
-import { HAZARD_TERMS, placeName } from "@/lib/i18n/terms";
-import type { HazardReport, HazardType, Severity } from "@/types";
+import { CRIME_TERMS, HAZARD_TERMS, placeName } from "@/lib/i18n/terms";
+import type { HazardType, Report, Severity } from "@/types";
 
 export interface Filters {
-  type: HazardType | "all";
+  /** A hazard type, "crime" for all safety reports, or "all". */
+  type: HazardType | "crime" | "all";
   severity: Severity | "all";
   location: string | "all";
   query: string;
@@ -18,25 +19,28 @@ export interface Filters {
 
 export const EMPTY_FILTERS: Filters = { type: "all", severity: "all", location: "all", query: "", hideResolved: false };
 
-export function applyFilters(reports: HazardReport[], f: Filters) {
+export function applyFilters(reports: Report[], f: Filters) {
   const q = f.query.trim().toLowerCase();
-  return reports.filter(
-    (r) =>
-      (f.type === "all" || r.type === f.type) &&
-      (f.severity === "all" || r.severity === f.severity) &&
+  return reports.filter((r) => {
+    const terms = r.kind === "hazard" ? HAZARD_TERMS[r.type] : CRIME_TERMS[r.category];
+    return (
+      (f.type === "all" || (f.type === "crime" ? r.kind === "crime" : r.kind === "hazard" && r.type === f.type)) &&
+      // Severity applies to hazard reports only.
+      (f.severity === "all" || (r.kind === "hazard" && r.severity === f.severity)) &&
       (f.location === "all" || r.locationName === f.location) &&
       (!f.hideResolved || r.status !== "resolved") &&
       (!q ||
         r.description.toLowerCase().includes(q) ||
         r.locationName.toLowerCase().includes(q) ||
-        HAZARD_TYPES[r.type].label.toLowerCase().includes(q) ||
-        HAZARD_TERMS[r.type].ur.includes(q) ||
+        terms.en.toLowerCase().includes(q) ||
+        terms.ur.includes(q) ||
         placeName(r.locationName, "ur").includes(q) ||
-        (r.ur?.description.includes(q) ?? false)),
-  );
+        (r.ur?.description.includes(q) ?? false))
+    );
+  });
 }
 
-export function useReportFilters(reports: HazardReport[], initial: Partial<Filters> = {}) {
+export function useReportFilters(reports: Report[], initial: Partial<Filters> = {}) {
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS, ...initial });
   const filtered = useMemo(() => applyFilters(reports, filters), [reports, filters]);
   const locations = useMemo(() => [...new Set(reports.map((r) => r.locationName))].sort(), [reports]);
@@ -99,6 +103,7 @@ export function ReportFilters({
                 {hazard(type)}
               </option>
             ))}
+            <option value="crime">{t("filters.crime")}</option>
           </Select>
         </label>
         <label>

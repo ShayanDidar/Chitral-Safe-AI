@@ -3,19 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { Languages, Phone, Plus } from "lucide-react";
+import { Languages, Phone, Plus, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHazardStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { btn } from "@/components/ui/primitives";
 import { WeatherIconGlyph } from "@/components/weather/WeatherIconGlyph";
+import { EmergencyContactList } from "@/components/emergency/EmergencyContacts";
+import { AccountMenu } from "./AccountMenu";
 import { AlertsBell } from "./AlertsBell";
 import { Logo } from "./Logo";
 import { NAV_ITEMS, isActive } from "./nav";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { weather } = useHazardStore();
+  const { weather, weatherStatus, user, offline } = useHazardStore();
   const { t, condition, locale } = useI18n();
 
   return (
@@ -49,19 +51,30 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
+          {user?.role === "admin" && (
+            <Link
+              href="/admin"
+              aria-current={pathname.startsWith("/admin") ? "page" : undefined}
+              className={cn(
+                "group mt-3 flex items-center gap-3 rounded-xl border-t border-slate-100 px-3 py-2.5 text-sm font-medium transition-colors",
+                pathname.startsWith("/admin") ? "bg-brand-50 text-brand-800" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+              )}
+            >
+              <ShieldCheck className="size-[18px] text-slate-400" aria-hidden />
+              {t("admin.title")}
+            </Link>
+          )}
         </nav>
         <div className="space-y-3 p-4">
-          <div className="rounded-xl bg-slate-50 p-3.5 ring-1 ring-inset ring-slate-200/70">
-            <p className="text-xs font-medium text-slate-900">{t("shell.emergencyTitle")}</p>
-            <p className="mt-0.5 text-[12px] leading-snug text-slate-500">
-              {t("shell.emergencyBody")}
+          <div className="rounded-xl bg-red-50/60 p-3.5 ring-1 ring-inset ring-red-600/10">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-red-900">
+              <Phone className="size-3.5" aria-hidden /> {t("shell.emergencyTitle")}
             </p>
-            <a
-              href="tel:1122"
-              className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-slate-200 hover:bg-red-50"
-            >
-              <Phone className="size-3.5" aria-hidden /> {t("shell.rescue")}
-            </a>
+            <p className="mb-2.5 mt-0.5 text-[11.5px] leading-snug text-red-900/70">{t("emergency.sidebarNote")}</p>
+            <EmergencyContactList variant="sidebar" />
+            <Link href="/emergency" className="mt-2 inline-block text-[11.5px] font-semibold text-red-800 hover:underline">
+              {t("emergency.allContacts")}
+            </Link>
           </div>
           <p className="px-1 text-[11px] leading-snug text-slate-400">
             {t("shell.disclaimer")}
@@ -89,23 +102,38 @@ export function AppShell({ children }: { children: ReactNode }) {
               </span>
             </div>
             <div className="flex items-center gap-2">
+              {weatherStatus !== "loading" && (
+                <Link
+                  href="/weather"
+                  className="hidden items-center gap-1.5 rounded-full px-2.5 py-1 text-sm text-slate-700 hover:bg-slate-100 xl:flex"
+                >
+                  <WeatherIconGlyph icon={weather.current.icon} className="size-4 text-slate-500" />
+                  <span className="font-medium">{weather.current.temperature}°C</span>
+                  <span className="text-slate-500">{condition(weather.current.icon, weather.current.condition)}</span>
+                </Link>
+              )}
               <Link
-                href="/weather"
-                className="hidden items-center gap-1.5 rounded-full px-2.5 py-1 text-sm text-slate-700 hover:bg-slate-100 sm:flex"
+                href="/emergency"
+                aria-label={t("emergency.title")}
+                className="grid size-9 place-items-center rounded-full bg-red-50 text-red-700 hover:bg-red-100 lg:hidden"
               >
-                <WeatherIconGlyph icon={weather.current.icon} className="size-4 text-slate-500" />
-                <span className="font-medium">{weather.current.temperature}°C</span>
-                <span className="text-slate-500">{condition(weather.current.icon, weather.current.condition)}</span>
+                <Phone className="size-[18px]" aria-hidden />
               </Link>
               <LanguageToggle />
               <AlertsBell />
-              <Link href="/report" className={cn(btn.base, btn.primary, btn.sm, "max-sm:hidden")}>
+              <Link href="/report" className={cn(btn.base, btn.primary, btn.sm, "max-md:hidden")}>
                 <Plus className="size-4" aria-hidden /> {t("shell.reportHazard")}
               </Link>
+              <AccountMenu />
             </div>
           </div>
         </header>
 
+        {offline && (
+          <p role="status" className="bg-amber-100 px-4 py-2 text-center text-xs font-medium text-amber-900">
+            {t("shell.offline")}
+          </p>
+        )}
         <main>{children}</main>
       </div>
 
@@ -161,7 +189,9 @@ function LanguageToggle() {
       )}
     >
       <Languages className="size-4 text-slate-500" aria-hidden />
-      <span lang={lang === "en" ? "ur" : "en"}>{t("lang.toggle")}</span>
+      <span lang={lang === "en" ? "ur" : "en"} className="max-sm:hidden">
+        {t("lang.toggle")}
+      </span>
     </button>
   );
 }

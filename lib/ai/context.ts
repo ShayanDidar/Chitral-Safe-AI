@@ -1,6 +1,7 @@
 import { HAZARD_TYPES } from "@/lib/hazards";
 import { minutesSince } from "@/lib/utils";
-import type { AIContext, EnvironmentalAlert, HazardReport, WeatherData } from "@/types";
+import { CRIME_TERMS } from "@/lib/i18n/terms";
+import type { AIContext, CrimeReport, EnvironmentalAlert, HazardReport, Report, WeatherData } from "@/types";
 
 const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1 } as const;
 
@@ -10,7 +11,7 @@ const SEVERITY_RANK = { critical: 4, high: 3, medium: 2, low: 1 } as const;
  * assistant more knowledge about the current app state.
  */
 export function buildAIContext(input: {
-  reports: HazardReport[];
+  reports: Report[];
   weather: WeatherData | null;
   alerts: EnvironmentalAlert[];
   selectedLocation?: string | null;
@@ -18,7 +19,18 @@ export function buildAIContext(input: {
   const { weather } = input;
   const selected = input.selectedLocation ?? null;
 
-  const reports = [...input.reports]
+  const hazards = input.reports.filter((r): r is HazardReport => r.kind === "hazard");
+  // Approved public safety (crime) reports: category and approximate area only.
+  const safetyReports = input.reports
+    .filter((r): r is CrimeReport => r.kind === "crime")
+    .slice(0, 10)
+    .map((r) => ({
+      category: CRIME_TERMS[r.category].en,
+      area: r.locationName,
+      reportedMinutesAgo: minutesSince(r.reportedAt),
+    }));
+
+  const reports = hazards
     .filter((r) => !selected || r.locationName === selected || r.area === selected)
     .sort(
       (a, b) =>
@@ -67,6 +79,7 @@ export function buildAIContext(input: {
         }
       : null,
     reports,
+    safetyReports,
     alerts: input.alerts.map((a) => ({ title: a.title, area: a.area, level: a.level, message: a.message })),
   };
 }

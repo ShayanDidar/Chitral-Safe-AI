@@ -2,8 +2,10 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type {
+  CrimeCategory,
   EnvironmentalAlert,
-  HazardReport,
+  Report,
+  ReviewStatus,
   HazardType,
   ReportComment,
   ReportStatus,
@@ -13,7 +15,9 @@ import type {
 } from "@/types";
 import { DICTIONARIES, type DictKey } from "./dictionary";
 import {
+  CRIME_TERMS,
   HAZARD_TERMS,
+  REVIEW_TERMS,
   RISK_NAME_TERMS,
   RISK_TERMS,
   SEVERITY_TERMS,
@@ -36,6 +40,12 @@ interface I18n {
   toggle: () => void;
   t: (key: DictKey, vars?: Vars) => string;
   hazard: (type: HazardType) => string;
+  crime: (c: CrimeCategory) => string;
+  review: (s: ReviewStatus) => string;
+  /** Hazard type or crime category label for any report. */
+  label: (r: Report) => string;
+  /** Reporter name, or "Anonymous". */
+  authorName: (r: Report) => string;
   severity: (s: Severity) => string;
   severityDesc: (s: Severity) => string;
   status: (s: ReportStatus) => string;
@@ -49,7 +59,7 @@ interface I18n {
   /** Keeps numbers readable inside Urdu text coming from data or the AI. */
   bidi: (text: string) => string;
   locale: string;
-  report: (r: HazardReport) => { title: string; description: string };
+  report: (r: Report) => { title: string; description: string };
   comment: (c: ReportComment) => string;
   alert: (a: EnvironmentalAlert) => { title: string; area: string; message: string; risks: string[]; source: string };
 }
@@ -104,6 +114,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         return ur ? isolateNumbers(text) : text;
       },
       hazard: (type) => HAZARD_TERMS[type][lang],
+      crime: (c) => CRIME_TERMS[c][lang],
+      review: (s) => REVIEW_TERMS[s][lang],
+      label: (r) => (r.kind === "crime" ? CRIME_TERMS[r.category][lang] : HAZARD_TERMS[r.type][lang]),
+      authorName: (r) => (r.author ? r.author.name : ur ? "گمنام" : "Anonymous"),
       severity: (s) => SEVERITY_TERMS[s][lang],
       severityDesc: (s) => (ur ? SEVERITY_TERMS[s].descUr : SEVERITY_TERMS[s].descEn),
       status: (s) => STATUS_TERMS[s][lang],
@@ -113,7 +127,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       condition: (icon, english) => (ur ? WEATHER_TERMS[icon] : english),
       ago: (iso) => timeAgoText(iso, lang),
       bidi: (text) => (ur ? isolateNumbers(text) : text),
-      person: (name) => (ur && name === "You" ? "آپ" : name),
+      person: (name) =>
+        ur ? ({ You: "آپ", "Anonymous reporter": "گمنام رپورٹر", "Former user": "سابق صارف" }[name] ?? name) : name,
       locale: ur ? "ur-PK" : "en-GB",
       report: (r) =>
         ur && r.ur ? { title: r.ur.title, description: r.ur.description } : { title: r.title, description: r.description },

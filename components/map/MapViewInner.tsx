@@ -4,19 +4,22 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import L from "leaflet";
-import { LayersControl, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
-import { ArrowRight, MapPin } from "lucide-react";
+import { Circle, LayersControl, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { ArrowRight, Lock, MapPin } from "lucide-react";
 import { BASE_LAYERS, MAP_CONFIG } from "@/lib/mapConfig";
 import { HAZARD_TYPES } from "@/lib/hazards";
-import { SeverityBadge, btn } from "@/components/ui/primitives";
+import { CRIME_HEX, CRIME_ICONS } from "@/lib/crime";
+import { ReviewBadge, SeverityBadge, btn } from "@/components/ui/primitives";
 import { TimeAgo } from "@/components/ui/TimeAgo";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
-import type { HazardReport } from "@/types";
-import { hazardIcon } from "./markerIcons";
+import type { Report } from "@/types";
+import { reportIcon } from "./markerIcons";
 
 export interface MapViewProps {
-  reports: HazardReport[];
+  reports: Report[];
+  /** Admin map: show review status and confidential markers. */
+  admin?: boolean;
   /** Highlighted marker. */
   selectedId?: string | null;
   /** Fly to a report and open its popup; change `key` to repeat. */
@@ -33,6 +36,7 @@ export interface MapViewProps {
 
 export default function MapViewInner({
   reports,
+  admin = false,
   selectedId,
   flyTo,
   compact = false,
@@ -79,12 +83,24 @@ export default function MapViewInner({
         </LayersControl>
       )}
 
+      {/* Approximate (privacy-protected) locations are shown as an area, not a precise point. */}
+      {reports
+        .filter((r) => r.approximate)
+        .map((r) => (
+          <Circle
+            key={`area-${r.id}`}
+            center={[r.coordinates.lat, r.coordinates.lng]}
+            radius={700}
+            pathOptions={{ color: CRIME_HEX, weight: 1, fillOpacity: 0.12, dashArray: "4 4" }}
+          />
+        ))}
+
       {reports.map((r) => (
         <Marker
           key={r.id}
           position={[r.coordinates.lat, r.coordinates.lng]}
-          icon={hazardIcon(r, r.id === selectedId)}
-          zIndexOffset={r.id === selectedId ? 1000 : r.severity === "critical" ? 500 : 0}
+          icon={reportIcon(r, r.id === selectedId, admin)}
+          zIndexOffset={r.id === selectedId ? 1000 : r.kind === "hazard" && r.severity === "critical" ? 500 : 0}
           ref={(m) => {
             if (m) markers.current.set(r.id, m);
             else markers.current.delete(r.id);
@@ -93,7 +109,7 @@ export default function MapViewInner({
         >
           {interactive && (
             <Popup>
-              <ReportPopup report={r} />
+              <ReportPopup report={r} admin={admin} />
             </Popup>
           )}
         </Marker>
@@ -105,10 +121,9 @@ export default function MapViewInner({
   );
 }
 
-function ReportPopup({ report }: { report: HazardReport }) {
-  const meta = HAZARD_TYPES[report.type];
-  const Icon = meta.icon;
-  const { t, dir, hazard, place, report: localize } = useI18n();
+function ReportPopup({ report, admin }: { report: Report; admin: boolean }) {
+  const Icon = report.kind === "hazard" ? HAZARD_TYPES[report.type].icon : CRIME_ICONS[report.category];
+  const { t, dir, label, place, report: localize } = useI18n();
   const text = localize(report);
   return (
     <div dir={dir}>
@@ -120,21 +135,37 @@ function ReportPopup({ report }: { report: HazardReport }) {
         <div className="flex items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-slate-900">
             <Icon className="size-4 text-slate-500" aria-hidden />
-            {hazard(report.type)}
+            {label(report)}
           </span>
-          <SeverityBadge severity={report.severity} />
+          {report.kind === "hazard" ? (
+            <SeverityBadge severity={report.severity} />
+          ) : (
+            <span className="rounded-full px-2 py-0.5 text-[11px] font-medium text-white" style={{ background: CRIME_HEX }}>
+              {t("crime.badge")}
+            </span>
+          )}
         </div>
+        {admin && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <ReviewBadge review={report.review} />
+            {report.visibility === "confidential" && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-white">
+                <Lock className="size-3" aria-hidden /> {t("visibility.confidential")}
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex items-center gap-1 text-xs text-slate-500">
           <MapPin className="size-3.5" aria-hidden />
           <span className="font-medium text-slate-700">{place(report.locationName)}</span>
           <span>·</span>
           <TimeAgo iso={report.reportedAt} />
         </div>
-        <p className="line-clamp-3 text-[13px] text-slate-600">{text.description}</p>
-        <Link
-          href={`/reports/${report.id}`}
-          className={cn(btn.base, btn.primary, btn.sm, "w-full !text-white")}
-        >
+        {report.approximate && <p className="text-[11px] text-slate-500">{t("crime.approxNote")}</p>}
+        <p dir="auto" className="line-clamp-3 text-[13px] text-slate-600">
+          {text.description}
+        </p>
+        <Link href={`/reports/${report.id}`} className={cn(btn.base, btn.primary, btn.sm, "w-full !text-white")}>
           {t("common.viewReportCta")} <ArrowRight className="size-3.5 rtl:-scale-x-100" aria-hidden />
         </Link>
       </div>

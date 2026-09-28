@@ -207,6 +207,26 @@ html[lang="ur"] .tabular-nums {
   padding: 1px 5px;
   border: 1.5px solid #fff;
 }
+.hazard-pin.is-pending {
+  outline: 3px dashed #d97706;
+  outline-offset: 2px;
+}
+.hazard-pin .badge-lock {
+  position: absolute;
+  bottom: -6px;
+  right: -8px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #1e293b;
+  border: 1.5px solid #fff;
+}
+.hazard-pin .badge-lock svg {
+  width: 10px;
+  height: 10px;
+}
 .pick-marker {
   background: transparent;
   border: none;

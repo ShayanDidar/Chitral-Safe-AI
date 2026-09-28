@@ -4,15 +4,15 @@ import { useState } from "react";
 import { CloudRain, Droplets, Gauge, Table2, TriangleAlert, Wind } from "lucide-react";
 import { useHazardStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { Card, DemoBadge, PageHeader, SectionHeader } from "@/components/ui/primitives";
-import { TimeAgo } from "@/components/ui/TimeAgo";
+import { Card, PageHeader, SectionHeader } from "@/components/ui/primitives";
 import { Page } from "@/components/layout/Page";
 import { WeatherIconGlyph } from "@/components/weather/WeatherIconGlyph";
 import { RainChart, TemperatureChart, fmtDay } from "@/components/weather/charts";
+import { WeatherLocationBar } from "@/components/weather/WeatherLocationBar";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export function WeatherView() {
-  const { weather } = useHazardStore();
+  const { weather, weatherStatus } = useHazardStore();
   const c = weather.current;
   const { t, place, condition, locale } = useI18n();
   const day = (date: string, i: number) => fmtDay(date, i, t("weather.today"), locale);
@@ -24,16 +24,10 @@ export function WeatherView() {
       <PageHeader
         title={t("weather.title")}
         subtitle={t("weather.subtitle", { place: place(weather.location) })}
-        action={
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <DemoBadge live={weather.source !== "demo"} label={t(weather.source === "demo" ? "weather.demo" : "weather.live")} />
-            <span>
-              {t("weather.updated")} <TimeAgo iso={weather.updatedAt} />
-            </span>
-          </div>
-        }
       />
+      <WeatherLocationBar />
 
+      <div className={cn("space-y-6 transition-opacity", weatherStatus === "loading" && "pointer-events-none opacity-40")} aria-busy={weatherStatus === "loading"}>
       {wet && (
         <div className="flex items-start gap-3 rounded-2xl bg-orange-50 p-4 ring-1 ring-inset ring-orange-600/20">
           <TriangleAlert className="mt-0.5 size-5 shrink-0 text-orange-700" aria-hidden />
@@ -173,6 +167,7 @@ export function WeatherView() {
           ))}
         </div>
       </section>
+      </div>
     </Page>
   );
 }

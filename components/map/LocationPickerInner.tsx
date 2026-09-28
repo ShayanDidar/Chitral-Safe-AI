@@ -29,6 +29,7 @@ export default function LocationPickerInner({ value, onPick }: LocationPickerPro
       />
       <ClickHandler onPick={onPick} />
       <Recenter value={value} />
+      <AutoResize />
       {value && (
         <Marker
           position={[value.lat, value.lng]}
@@ -50,6 +51,17 @@ function ClickHandler({ onPick }: { onPick: (p: LatLng) => void }) {
   useMapEvents({
     click: (e) => onPick({ lat: +e.latlng.lat.toFixed(5), lng: +e.latlng.lng.toFixed(5) }),
   });
+  return null;
+}
+
+/** Leaflet doesn't notice container size changes on its own. */
+function AutoResize() {
+  const map = useMap();
+  useEffect(() => {
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(map.getContainer());
+    return () => ro.disconnect();
+  }, [map]);
   return null;
 }
 

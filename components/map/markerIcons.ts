@@ -1,7 +1,8 @@
 import L from "leaflet";
-import { CircleAlert, CloudRainWind, Mountain, MountainSnow, Snowflake, Stone, TrafficCone, Waves } from "lucide";
+import { CircleAlert, CloudRainWind, Lock, Mountain, MountainSnow, ShieldAlert, Snowflake, Stone, TrafficCone, Waves } from "lucide";
 import { SEVERITIES } from "@/lib/hazards";
-import type { HazardReport, HazardType } from "@/types";
+import { CRIME_HEX } from "@/lib/crime";
+import type { HazardType, Report } from "@/types";
 
 type IconNode = typeof Mountain;
 
@@ -30,25 +31,42 @@ function svg(node: IconNode) {
 
 const cache = new Map<string, L.DivIcon>();
 
-export function hazardIcon(report: Pick<HazardReport, "type" | "severity" | "status" | "source">, selected = false) {
-  const isNew = report.source === "user";
-  const key = `${report.type}|${report.severity}|${report.status}|${isNew}|${selected}`;
+/**
+ * Marker for any report. In admin mode the marker also shows review status
+ * (pending = dashed amber ring, rejected = faded) and a lock for confidential reports.
+ */
+export function reportIcon(report: Report, selected = false, admin = false) {
+  const isNew = report.mine && report.review === "approved" && Date.now() - new Date(report.reportedAt).getTime() < 3_600_000;
+  const key = [
+    report.kind,
+    report.kind === "hazard" ? `${report.type}|${report.severity}` : "crime",
+    report.status,
+    isNew,
+    selected,
+    admin ? `${report.review}|${report.visibility}` : "",
+  ].join("|");
   const hit = cache.get(key);
   if (hit) return hit;
 
-  const s = SEVERITIES[report.severity];
+  const color = report.kind === "hazard" ? SEVERITIES[report.severity].hex : CRIME_HEX;
+  const node = report.kind === "hazard" ? NODES[report.type] : ShieldAlert;
   const classes = [
     "hazard-pin",
-    report.severity === "critical" && report.status !== "resolved" ? "is-critical" : "",
-    report.status === "resolved" ? "is-resolved" : "",
+    report.kind === "hazard" && report.severity === "critical" && report.status !== "resolved" ? "is-critical" : "",
+    report.status === "resolved" || (admin && report.review === "rejected") ? "is-resolved" : "",
     isNew ? "is-new" : "",
+    admin && report.review === "pending" ? "is-pending" : "",
   ].join(" ");
   const size = selected ? 42 : 34;
+  const badge =
+    admin && report.visibility === "confidential"
+      ? `<span class="badge-lock">${svg(Lock)}</span>`
+      : isNew
+        ? '<span class="badge-new">NEW</span>'
+        : "";
   const icon = L.divIcon({
     className: "hazard-marker",
-    html: `<div class="${classes}" style="background:${s.hex};${selected ? "width:42px;height:42px;border-width:3px;" : ""}">${svg(
-      NODES[report.type],
-    )}${isNew ? '<span class="badge-new">NEW</span>' : ""}</div>`,
+    html: `<div class="${classes}" style="background:${color};${selected ? "width:42px;height:42px;border-width:3px;" : ""}">${svg(node)}${badge}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -size / 2],

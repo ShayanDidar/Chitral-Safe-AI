@@ -2,27 +2,34 @@
  * Weather service (server-side only — used by app/api/weather/route.ts).
  *
  * Providers:
- *   WEATHER_PROVIDER=demo        (default) realistic demo data, no network needed
- *   WEATHER_PROVIDER=open-meteo  live data from Open-Meteo (free, no API key)
+ *   WEATHER_PROVIDER=open-meteo  (default) live data from Open-Meteo — free, no API key
+ *   WEATHER_PROVIDER=demo        sample data, no network (e.g. for offline demos)
  *
  * To plug in another provider (OpenWeather, Tomorrow.io, PMD feed, ...), add a
- * function that returns `WeatherData` and select it in `getWeather()`.
- * Any failure falls back to demo data so the UI never breaks.
+ * function that returns `WeatherData` and select it in `getWeather()`; read its
+ * key from a server-only env var so it never reaches the browser.
+ * If the live provider fails, sample data is returned with `error: "unavailable"`
+ * so the UI can say so honestly instead of breaking.
  */
 import { buildDemoWeather } from "@/data/weather";
 import { LOCATIONS, PRIMARY_LOCATION_IDS } from "@/data/locations";
 import type { WeatherData, WeatherIcon } from "@/types";
 
-export async function getWeather(): Promise<WeatherData> {
-  const provider = (process.env.WEATHER_PROVIDER || "demo").toLowerCase();
-  if (provider === "open-meteo") {
-    try {
-      return await fetchOpenMeteo();
-    } catch (err) {
-      console.warn("[weatherService] Open-Meteo failed, using demo data:", err);
-    }
+export interface WeatherPoint {
+  lat: number;
+  lng: number;
+  name: string;
+}
+
+export async function getWeather(point?: WeatherPoint): Promise<WeatherData> {
+  const provider = (process.env.WEATHER_PROVIDER || "open-meteo").toLowerCase();
+  if (provider === "demo") return { ...buildDemoWeather(), location: point?.name ?? "Chitral Town" };
+  try {
+    return await fetchOpenMeteo(point);
+  } catch (err) {
+    console.warn("[weatherService] Open-Meteo failed, using sample data:", err);
+    return { ...buildDemoWeather(), location: point?.name ?? "Chitral Town", error: "unavailable" };
   }
-  return buildDemoWeather();
 }
 
 // ---------------------------------------------------------------------------
@@ -49,11 +56,14 @@ interface OpenMeteoResponse {
   };
 }
 
-async function fetchOpenMeteo(): Promise<WeatherData> {
+async function fetchOpenMeteo(point?: WeatherPoint): Promise<WeatherData> {
   const locs = PRIMARY_LOCATION_IDS.map((id) => LOCATIONS.find((l) => l.id === id)!);
+  // First coordinate is the selected point; the rest feed "Conditions across Chitral".
+  const main0 = point ?? { lat: locs[0].coordinates.lat, lng: locs[0].coordinates.lng, name: locs[0].name };
+  const points = [main0, ...locs.map((l) => ({ lat: l.coordinates.lat, lng: l.coordinates.lng }))];
   const params = new URLSearchParams({
-    latitude: locs.map((l) => l.coordinates.lat).join(","),
-    longitude: locs.map((l) => l.coordinates.lng).join(","),
+    latitude: points.map((p) => p.lat.toFixed(3)).join(","),
+    longitude: points.map((p) => p.lng.toFixed(3)).join(","),
     current: "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m",
     hourly: "temperature_2m,precipitation_probability",
     daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum",
@@ -61,12 +71,11 @@ async function fetchOpenMeteo(): Promise<WeatherData> {
     forecast_days: "7",
   });
   const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
-    next: { revalidate: 900 },
+    next: { revalidate: 600 },
     signal: AbortSignal.timeout(6000),
   });
   if (!res.ok) throw new Error(`Open-Meteo HTTP ${res.status}`);
-  const all = (await res.json()) as OpenMeteoResponse[];
-  const main = all[0];
+  const [main, ...all] = (await res.json()) as OpenMeteoResponse[];
 
   const nowIdx = Math.max(
     0,
@@ -81,8 +90,10 @@ async function fetchOpenMeteo(): Promise<WeatherData> {
 
   return {
     source: "open-meteo",
-    updatedAt: new Date().toISOString(),
-    location: locs[0].name,
+    // Time of the provider's latest observation (local time in Pakistan).
+    updatedAt: new Date(`${main.current.time}:00+05:00`).toISOString(),
+    location: main0.name,
+    coordinates: { lat: main0.lat, lng: main0.lng },
     current: {
       temperature: Math.round(main.current.temperature_2m),
       feelsLike: Math.round(main.current.apparent_temperature),

@@ -1,11 +1,11 @@
-import type { HazardReport, HazardType, ReportStatus, Severity } from "@/types";
-import { LOCATIONS } from "./locations";
+import type { HazardType, ReportStatus, Severity } from "@/types";
 
 /**
- * Seed community reports. Timestamps are stored as "minutes ago" and resolved
- * at load time so the demo always looks current.
+ * Demo community reports, inserted into the database as approved content
+ * the first time it is set up (see lib/server/db/seed.ts).
+ * Timestamps are "minutes before seeding".
  */
-interface SeedReport {
+export interface SeedReport {
   id: string;
   type: HazardType;
   severity: Severity;
@@ -282,40 +282,4 @@ const SEED: SeedReport[] = [
   },
 ];
 
-function minutesAgoIso(now: number, minutes: number) {
-  return new Date(now - minutes * 60_000).toISOString();
-}
-
-export function buildSeedReports(now = Date.now()): HazardReport[] {
-  return SEED.map((s) => {
-    const loc = LOCATIONS.find((l) => l.id === s.locationId) ?? LOCATIONS[0];
-    return {
-      id: s.id,
-      type: s.type,
-      severity: s.severity,
-      status: s.status,
-      title: s.title,
-      description: s.description,
-      locationName: loc.name,
-      area: loc.area,
-      coordinates: {
-        lat: +(loc.coordinates.lat + s.offset[0]).toFixed(5),
-        lng: +(loc.coordinates.lng + s.offset[1]).toFixed(5),
-      },
-      imageUrl: s.image,
-      author: s.author,
-      reportedAt: minutesAgoIso(now, s.minutesAgo),
-      likes: s.likes,
-      likedByMe: false,
-      comments: s.comments.map((c, i) => ({
-        id: `${s.id}-c${i}`,
-        author: c.author,
-        text: c.text,
-        textUr: s.ur.comments[i],
-        createdAt: minutesAgoIso(now, c.minutesAgo),
-      })),
-      source: "community" as const,
-      ur: { title: s.ur.title, description: s.ur.description },
-    };
-  }).sort((a, b) => b.reportedAt.localeCompare(a.reportedAt));
-}
+export const SEED_REPORTS = SEED;

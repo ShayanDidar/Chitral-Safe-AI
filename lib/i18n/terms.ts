@@ -2,7 +2,7 @@
  * Domain vocabulary in English and Urdu. Plain data (no React) so it can be
  * used on the server too — e.g. by the demo AI responses.
  */
-import type { HazardType, ReportStatus, RiskLevel, Severity, WeatherIcon } from "@/types";
+import type { CrimeCategory, HazardType, ReportStatus, ReviewStatus, RiskLevel, Severity, WeatherIcon } from "@/types";
 
 export type Lang = "en" | "ur";
 export const LANGS: Lang[] = ["en", "ur"];
@@ -18,6 +18,25 @@ export const HAZARD_TERMS: Record<HazardType, Pair> = {
   rockfall: { en: "Rockfall", ur: "پتھر گرنا" },
   snowfall: { en: "Snowfall", ur: "برف باری" },
   other: { en: "Other", ur: "دیگر" },
+};
+
+export const CRIME_TERMS: Record<CrimeCategory, Pair> = {
+  theft: { en: "Theft", ur: "چوری" },
+  robbery: { en: "Robbery", ur: "ڈکیتی" },
+  assault: { en: "Assault", ur: "حملہ / مار پیٹ" },
+  harassment: { en: "Harassment", ur: "ہراسانی" },
+  domestic_violence: { en: "Domestic violence", ur: "گھریلو تشدد" },
+  fraud: { en: "Fraud or scam", ur: "دھوکہ دہی" },
+  drugs: { en: "Drug-related", ur: "منشیات سے متعلق" },
+  vandalism: { en: "Vandalism", ur: "توڑ پھوڑ" },
+  suspicious: { en: "Suspicious activity", ur: "مشکوک سرگرمی" },
+  other: { en: "Other", ur: "دیگر" },
+};
+
+export const REVIEW_TERMS: Record<ReviewStatus, Pair> = {
+  pending: { en: "Pending review", ur: "زیرِ جائزہ" },
+  approved: { en: "Approved", ur: "منظور شدہ" },
+  rejected: { en: "Rejected", ur: "مسترد" },
 };
 
 /** Looks up a hazard label given its English label (as sent in AI context). */

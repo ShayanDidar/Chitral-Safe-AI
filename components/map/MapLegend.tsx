@@ -1,6 +1,7 @@
 "use client";
 
 import { SEVERITIES, SEVERITY_LIST } from "@/lib/hazards";
+import { CRIME_HEX } from "@/lib/crime";
 import { cn } from "@/lib/utils";
 import { SeverityMeter } from "@/components/ui/primitives";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
@@ -23,6 +24,10 @@ export function MapLegend({ className, horizontal = false }: { className?: strin
             <span className="font-medium">{severity(s)}</span>
           </li>
         ))}
+        <li className="flex items-center gap-2 text-xs text-slate-700">
+          <span className="size-3 rounded-full ring-2 ring-white" style={{ background: CRIME_HEX }} />
+          <span className="font-medium">{t("legend.safety")}</span>
+        </li>
       </ul>
       {!horizontal && (
         <p className="mt-2 border-t border-slate-100 pt-1.5 text-[11px] leading-snug text-slate-500">

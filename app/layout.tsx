@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Noto_Naskh_Arabic } from "next/font/google";
 import { AppShell } from "@/components/layout/AppShell";
 import { HazardStoreProvider } from "@/lib/store";
 import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
+import { loadInitialData } from "@/lib/server/bootstrap";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,7 +38,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Reads the session cookie, so every page is rendered per request (never prerendered).
+  const initial = await loadInitialData();
   return (
     <html
       lang="en"
@@ -46,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full">
         <LanguageProvider>
-          <HazardStoreProvider>
+          <HazardStoreProvider {...initial}>
             <AppShell>{children}</AppShell>
           </HazardStoreProvider>
         </LanguageProvider>

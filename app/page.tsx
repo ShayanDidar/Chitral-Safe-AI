@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { ArrowRight, CloudRain, Maximize2, Plus, Sparkles, Thermometer, TriangleAlert } from "lucide-react";
+import { ArrowRight, CloudRain, Maximize2, Plus, ShieldAlert, Sparkles, Thermometer, TriangleAlert } from "lucide-react";
 import { useHazardStore, useActiveReports } from "@/lib/store";
 import { useChitralRisk } from "@/lib/useAIContext";
 import { cn } from "@/lib/utils";
@@ -18,12 +18,13 @@ import { Page } from "@/components/layout/Page";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export default function HomePage() {
-  const { reports, weather, alerts } = useHazardStore();
+  const { reports, weather, weatherStatus, alerts } = useHazardStore();
+  const wLoading = weatherStatus === "loading";
   const active = useActiveReports();
   const recent = useMemo(() => reports.slice(0, 8), [reports]);
   const serious = active.filter((r) => r.severity === "critical").length;
   const high = active.filter((r) => r.severity === "high").length;
-  const mine = reports.filter((r) => r.source === "user").length;
+  const mine = reports.filter((r) => r.mine).length;
   const c = weather.current;
   const { t, condition } = useI18n();
 
@@ -34,8 +35,8 @@ export default function HomePage() {
         subtitle={t("home.subtitle")}
         action={
           <div className="flex gap-2">
-            <Link href="/map" className={cn(btn.base, btn.secondary, btn.md)}>
-              {t("common.openMap")}
+            <Link href="/report/crime" className={cn(btn.base, btn.secondary, btn.md)}>
+              <ShieldAlert className="size-4" aria-hidden /> {t("crime.title")}
             </Link>
             <Link href="/report" className={cn(btn.base, btn.primary, btn.md)}>
               <Plus className="size-4" aria-hidden /> {t("home.reportHazard")}
@@ -49,12 +50,14 @@ export default function HomePage() {
         <StatTile
           label={t("stat.temperature")}
           icon={<Thermometer className="size-4" aria-hidden />}
+          loading={wLoading}
           value={`${c.temperature}°C`}
           sub={t("stat.tempSub", { h: c.high, l: c.low, f: c.feelsLike })}
         />
         <StatTile
           label={t("stat.weather")}
           icon={<WeatherIconGlyph icon={c.icon} className="size-4" />}
+          loading={wLoading}
           value={condition(c.icon, c.condition)}
           valueClass="text-xl sm:text-2xl"
           sub={t("stat.weatherSub", { h: c.humidity, w: c.windSpeed })}
@@ -62,6 +65,7 @@ export default function HomePage() {
         <StatTile
           label={t("stat.rain")}
           icon={<CloudRain className="size-4" aria-hidden />}
+          loading={wLoading}
           value={`${c.rainProbability}%`}
           sub={
             <span className="block">
@@ -136,7 +140,12 @@ export default function HomePage() {
       <AskAIPrompt />
 
       <p className="text-center text-xs text-slate-400">
-        {t(weather.source === "demo" ? "home.weatherDemo" : "home.weatherLive")} <TimeAgo iso={weather.updatedAt} />
+        {!wLoading && (
+          <>
+            {t(weatherStatus === "live" ? "home.weatherLive" : "home.weatherDemo")} <TimeAgo iso={weather.updatedAt} />
+            {weatherStatus === "unavailable" && ` · ${t("weather.sampleFallback")}`}
+          </>
+        )}
       </p>
     </Page>
   );
@@ -149,6 +158,7 @@ function StatTile({
   sub,
   valueClass,
   accent,
+  loading,
 }: {
   label: string;
   icon: React.ReactNode;
@@ -156,6 +166,7 @@ function StatTile({
   sub?: React.ReactNode;
   valueClass?: string;
   accent?: boolean;
+  loading?: boolean;
 }) {
   return (
     <Card className="p-4">
@@ -165,10 +176,19 @@ function StatTile({
           {icon}
         </span>
       </div>
-      <p className={cn("mt-2 truncate font-semibold tracking-tight text-slate-900 tabular-nums", valueClass ?? "text-2xl sm:text-3xl")}>
-        {value}
-      </p>
-      {sub && <div className="mt-1 text-xs text-slate-500">{sub}</div>}
+      {loading ? (
+        <div className="mt-3 space-y-2" aria-busy>
+          <div className="h-7 w-20 animate-pulse rounded bg-slate-100" />
+          <div className="h-3 w-28 animate-pulse rounded bg-slate-100" />
+        </div>
+      ) : (
+        <>
+          <p className={cn("mt-2 truncate font-semibold tracking-tight text-slate-900 tabular-nums", valueClass ?? "text-2xl sm:text-3xl")}>
+            {value}
+          </p>
+          {sub && <div className="mt-1 text-xs text-slate-500">{sub}</div>}
+        </>
+      )}
     </Card>
   );
 }

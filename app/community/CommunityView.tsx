@@ -36,7 +36,10 @@ export function CommunityView() {
 
   const byType = useMemo(() => {
     const active = reports.filter((r) => r.status !== "resolved");
-    return HAZARD_TYPE_LIST.map((type) => ({ type, count: active.filter((r) => r.type === type).length }))
+    return HAZARD_TYPE_LIST.map((type) => ({
+      type,
+      count: active.filter((r) => r.kind === "hazard" && r.type === type).length,
+    }))
       .filter((x) => x.count > 0)
       .sort((a, b) => b.count - a.count);
   }, [reports]);

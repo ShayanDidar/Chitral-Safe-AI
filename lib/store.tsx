@@ -1,15 +1,18 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { buildDemoWeather } from "@/data/weather";
-import { createComment, createReport, getInitialAlerts, getInitialReports } from "@/services/reportService";
-import { fetchWeather } from "@/services/apiClient";
+import { buildSeedAlerts } from "@/data/alerts";
+import { DEFAULT_LOCATION, LOCATIONS } from "@/data/locations";
+import * as api from "@/services/apiClient";
 import type {
   AIMode,
   ChatMessage,
+  CurrentUser,
+  EmergencyContact,
   EnvironmentalAlert,
   HazardReport,
-  NewReportInput,
+  Report,
   RiskAssessment,
   WeatherData,
 } from "@/types";
@@ -22,14 +25,42 @@ interface RiskState {
   lang?: "en" | "ur";
 }
 
+export interface WeatherPlace {
+  name: string;
+  lat: number;
+  lng: number;
+  /** "preset" = a known Chitral location; "current" = from the device's location (never stored). */
+  kind: "preset" | "current";
+}
+
+export type WeatherStatus = "loading" | "live" | "sample" | "unavailable";
+
 interface HazardStore {
-  reports: HazardReport[];
+  /** Approved, public reports (what the feed and public map show). */
+  reports: Report[];
+  refreshReports: () => Promise<void>;
+  /** Replace/insert a report returned by the API (e.g. after a comment). */
+  upsertReport: (r: Report) => void;
+  removeReport: (id: string) => void;
+  toggleLike: (id: string) => Promise<"ok" | "signin">;
+  addComment: (id: string, text: string) => Promise<void>;
+  deleteReport: (id: string) => Promise<void>;
+  getReport: (id: string) => Report | undefined;
+
+  user: CurrentUser | null;
+  setUser: (u: CurrentUser | null) => void;
+  contacts: EmergencyContact[];
+  setContacts: (c: EmergencyContact[]) => void;
+  /** True when the server could not reach the database. */
+  offline: boolean;
+
   alerts: EnvironmentalAlert[];
   weather: WeatherData;
-  addReport: (input: NewReportInput) => HazardReport;
-  toggleLike: (id: string) => void;
-  addComment: (id: string, text: string) => void;
-  getReport: (id: string) => HazardReport | undefined;
+  weatherStatus: WeatherStatus;
+  weatherPlace: WeatherPlace;
+  setWeatherPlace: (p: WeatherPlace) => void;
+  refreshWeather: () => void;
+
   /** Assistant conversation, kept across page navigation for the session. */
   chat: ChatMessage[];
   setChat: (update: (prev: ChatMessage[]) => ChatMessage[]) => void;
@@ -41,62 +72,183 @@ interface HazardStore {
 
 const StoreContext = createContext<HazardStore | null>(null);
 
-/**
- * Single shared source of truth for the session. A new report is added here
- * once and immediately shows up in the community feed, on the map and on the
- * dashboard, because all of them read from `reports`.
- */
-export function HazardStoreProvider({ children }: { children: ReactNode }) {
-  const [reports, setReports] = useState<HazardReport[]>(getInitialReports);
-  const [alerts] = useState<EnvironmentalAlert[]>(getInitialAlerts);
+const PLACE_KEY = "chitral-safe-weather-place";
+const REFRESH_MS = 30_000;
+const DEFAULT_PLACE: WeatherPlace = {
+  name: DEFAULT_LOCATION.name,
+  lat: DEFAULT_LOCATION.coordinates.lat,
+  lng: DEFAULT_LOCATION.coordinates.lng,
+  kind: "preset",
+};
+
+export function HazardStoreProvider({
+  children,
+  initialReports,
+  initialUser,
+  initialContacts,
+  offline,
+}: {
+  children: ReactNode;
+  initialReports: Report[];
+  initialUser: CurrentUser | null;
+  initialContacts: EmergencyContact[];
+  offline: boolean;
+}) {
+  const [reports, setReports] = useState<Report[]>(initialReports);
+  const [user, setUserState] = useState<CurrentUser | null>(initialUser);
+  const [contacts, setContacts] = useState<EmergencyContact[]>(initialContacts);
+  const [alerts] = useState<EnvironmentalAlert[]>(() => buildSeedAlerts());
   const [weather, setWeather] = useState<WeatherData>(() => buildDemoWeather());
+  const [weatherStatus, setWeatherStatus] = useState<WeatherStatus>("loading");
+  const [weatherPlace, setWeatherPlaceState] = useState<WeatherPlace>(DEFAULT_PLACE);
   const [chat, setChatState] = useState<ChatMessage[]>([]);
   const [aiMode, setAiMode] = useState<AIMode | null>(null);
   const [risk, setRisk] = useState<RiskState | null>(null);
+  /** Ids deleted in this tab — kept out even if a refresh races with the delete. */
+  const deleted = useRef(new Set<string>());
+
+  // ---- Reports: server is the source of truth; refresh in the background ----
+  const refreshReports = useCallback(async () => {
+    try {
+      const fresh = await api.fetchPublicReports();
+      setReports(fresh.filter((r) => !deleted.current.has(r.id)));
+    } catch {
+      /* keep what we have */
+    }
+  }, []);
 
   useEffect(() => {
+    const t = setInterval(() => {
+      if (document.visibilityState === "visible") void refreshReports();
+    }, REFRESH_MS);
+    const onFocus = () => void refreshReports();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [refreshReports]);
+
+  const setUser = useCallback(
+    (u: CurrentUser | null) => {
+      setUserState(u);
+      // likedByMe / "mine" depend on who is signed in.
+      void refreshReports();
+    },
+    [refreshReports],
+  );
+
+  const upsertReport = useCallback((r: Report) => {
+    setReports((prev) => (prev.some((x) => x.id === r.id) ? prev.map((x) => (x.id === r.id ? r : x)) : [r, ...prev]));
+  }, []);
+
+  const removeReport = useCallback((id: string) => {
+    deleted.current.add(id);
+    setReports((prev) => prev.filter((r) => r.id !== id));
+  }, []);
+
+  const toggleLike = useCallback(
+    async (id: string) => {
+      if (!user) return "signin" as const;
+      const flip = (r: Report) => (r.id === id ? { ...r, likedByMe: !r.likedByMe, likes: r.likes + (r.likedByMe ? -1 : 1) } : r);
+      setReports((prev) => prev.map(flip));
+      try {
+        await api.toggleLike(id);
+      } catch {
+        setReports((prev) => prev.map(flip)); // undo
+      }
+      return "ok" as const;
+    },
+    [user],
+  );
+
+  const addComment = useCallback(
+    async (id: string, text: string) => {
+      if (!text.trim()) return;
+      upsertReport(await api.addComment(id, text));
+    },
+    [upsertReport],
+  );
+
+  const deleteReport = useCallback(
+    async (id: string) => {
+      await api.deleteReport(id);
+      removeReport(id);
+    },
+    [removeReport],
+  );
+
+  const getReport = useCallback((id: string) => reports.find((r) => r.id === id), [reports]);
+
+  // ---- Weather for the selected place ----
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(PLACE_KEY) ?? "null") as { name?: string } | null;
+      const loc = saved?.name ? LOCATIONS.find((l) => l.name === saved.name) : undefined;
+      if (loc) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring a saved preference after hydration
+        setWeatherPlaceState({ name: loc.name, lat: loc.coordinates.lat, lng: loc.coordinates.lng, kind: "preset" });
+      }
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
+
+  const [weatherTick, setWeatherTick] = useState(0);
+  useEffect(() => {
     let cancelled = false;
-    fetchWeather()
-      .then((w) => !cancelled && setWeather(w))
-      .catch(() => {
-        /* keep demo weather */
-      });
+    const isDefault = weatherPlace.kind === "preset" && weatherPlace.name === DEFAULT_PLACE.name;
+    api
+      .fetchWeather(isDefault ? undefined : weatherPlace)
+      .then((w) => {
+        if (cancelled) return;
+        setWeather(w);
+        setWeatherStatus(w.error ? "unavailable" : w.source === "demo" ? "sample" : "live");
+      })
+      .catch(() => !cancelled && setWeatherStatus("unavailable"));
     return () => {
       cancelled = true;
     };
+  }, [weatherPlace, weatherTick]);
+
+  const setWeatherPlace = useCallback((p: WeatherPlace) => {
+    setWeatherStatus("loading");
+    setWeatherPlaceState(p);
+    try {
+      // Only named presets are remembered — never the device's coordinates.
+      if (p.kind === "preset") localStorage.setItem(PLACE_KEY, JSON.stringify({ name: p.name }));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  const refreshWeather = useCallback(() => {
+    setWeatherStatus("loading");
+    setWeatherTick((n) => n + 1);
   }, []);
 
-  const addReport = useCallback((input: NewReportInput) => {
-    const report = createReport(input);
-    setReports((prev) => [report, ...prev]);
-    return report;
-  }, []);
-
-  const toggleLike = useCallback((id: string) => {
-    setReports((prev) =>
-      prev.map((r) =>
-        r.id === id ? { ...r, likedByMe: !r.likedByMe, likes: r.likes + (r.likedByMe ? -1 : 1) } : r,
-      ),
-    );
-  }, []);
-
-  const addComment = useCallback((id: string, text: string) => {
-    if (!text.trim()) return;
-    setReports((prev) => prev.map((r) => (r.id === id ? { ...r, comments: [...r.comments, createComment(text)] } : r)));
-  }, []);
-
-  const getReport = useCallback((id: string) => reports.find((r) => r.id === id), [reports]);
   const setChat = useCallback((update: (prev: ChatMessage[]) => ChatMessage[]) => setChatState(update), []);
 
   const value = useMemo<HazardStore>(
     () => ({
       reports,
-      alerts,
-      weather,
-      addReport,
+      refreshReports,
+      upsertReport,
+      removeReport,
       toggleLike,
       addComment,
+      deleteReport,
       getReport,
+      user,
+      setUser,
+      contacts,
+      setContacts,
+      offline,
+      alerts,
+      weather,
+      weatherStatus,
+      weatherPlace,
+      setWeatherPlace,
+      refreshWeather,
       chat,
       setChat,
       aiMode,
@@ -104,7 +256,30 @@ export function HazardStoreProvider({ children }: { children: ReactNode }) {
       risk,
       setRisk,
     }),
-    [reports, alerts, weather, addReport, toggleLike, addComment, getReport, chat, setChat, aiMode, risk],
+    [
+      reports,
+      refreshReports,
+      upsertReport,
+      removeReport,
+      toggleLike,
+      addComment,
+      deleteReport,
+      getReport,
+      user,
+      setUser,
+      contacts,
+      offline,
+      alerts,
+      weather,
+      weatherStatus,
+      weatherPlace,
+      setWeatherPlace,
+      refreshWeather,
+      chat,
+      setChat,
+      aiMode,
+      risk,
+    ],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
@@ -116,7 +291,11 @@ export function useHazardStore() {
   return ctx;
 }
 
+/** Public hazard reports that are still ongoing. */
 export function useActiveReports() {
   const { reports } = useHazardStore();
-  return useMemo(() => reports.filter((r) => r.status !== "resolved"), [reports]);
+  return useMemo(
+    () => reports.filter((r): r is HazardReport => r.kind === "hazard" && r.status !== "resolved"),
+    [reports],
+  );
 }

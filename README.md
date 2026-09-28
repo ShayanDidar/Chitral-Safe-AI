@@ -1,74 +1,100 @@
 # Chitral Safe
 
-Community-powered environmental hazard awareness for Chitral, Pakistan. People can see current conditions, view hazards on a live map, report a hazard with a photo, follow a community feed, and ask an AI assistant about weather, hazards and safety.
+Community-powered environmental and public-safety awareness for Chitral, Pakistan. People can see live weather, view hazards on a map, report hazards or crimes with photos, follow a moderated community feed, and ask an AI assistant about conditions and safety. The interface is available in English and Urdu.
 
-There's no login. The app opens straight onto the dashboard.
+Browsing needs no account. Submitting, commenting and liking need a free account, so people can track and delete their own reports.
 
 ## Run locally
 
 ```bash
 npm install
 npm run dev          # http://localhost:3000
-npm run build && npm start   # production build
 ```
 
-The app works with **no environment variables at all**. It falls back to demo weather and demo AI responses.
+With no configuration, the app uses an embedded Postgres database (PGlite, stored in `.data/pglite`). The database is created and filled with demo reports on first use.
+
+### Create an admin
+
+Pick one:
+
+- Set `ADMIN_EMAILS=you@example.com` in `.env.local`, then sign up or sign in with that email.
+- Sign up normally, then run `npm run admin:grant -- you@example.com`.
 
 ## Environment variables
 
-Copy `.env.example` to `.env.local`. Every variable is optional.
+See `.env.example`.
 
-| Variable | Purpose |
-|---|---|
-| `AI_API_KEY` | Enables the live AI. Without it, context-aware demo responses are used. Server-side only. |
-| `AI_PROVIDER` | `anthropic` or `openai` (any OpenAI-compatible API). Auto-detected from the key if empty. |
-| `AI_MODEL` | Model name. Defaults to `claude-sonnet-5` (Anthropic) or `gpt-4o-mini` (OpenAI). |
-| `AI_BASE_URL` | Base URL for OpenAI-compatible providers (Groq, OpenRouter, Gemini…). |
-| `WEATHER_PROVIDER` | `demo` (default) or `open-meteo` for live weather (free, no key). |
-| `NEXT_PUBLIC_MAP_TILE_URL` / `NEXT_PUBLIC_MAP_ATTRIBUTION` | Optional custom map tiles. |
+| Variable | Needed | Purpose |
+|---|---|---|
+| `DATABASE_URL` | **Yes on Vercel** | Postgres connection string (Neon, Supabase, Vercel Postgres…). Leave empty locally to use the embedded database. |
+| `ADMIN_EMAILS` | Recommended | Comma-separated emails that become admins. |
+| `SEED_DEMO_DATA` | No | Set to `false` to start with an empty database. |
+| `AI_API_KEY` | No | Enables the live AI. Anthropic, Google Gemini and OpenAI-compatible keys are detected automatically. Without it, demo answers are used. |
+| `AI_PROVIDER`, `AI_MODEL`, `AI_BASE_URL` | No | Override AI provider details. |
+| `WEATHER_PROVIDER` | No | `open-meteo` (default, live, no key) or `demo` (offline sample data). |
+| `NEXT_PUBLIC_MAP_TILE_URL` / `_ATTRIBUTION` | No | Custom map tiles. |
+
+All secrets are read on the server only.
+
+## Deploy to Vercel
+
+1. Create a Postgres database. In Vercel: **Storage → Create → Neon** (free tier). This adds `DATABASE_URL` to the project automatically. Any Postgres provider works.
+2. Add `ADMIN_EMAILS` (your email) and, optionally, `AI_API_KEY` under **Settings → Environment Variables**.
+3. Deploy. `npm run build` runs the database migrations and seeds demo content before building.
+4. Sign up with the admin email and open **Admin portal** from the account menu.
+
+Without `DATABASE_URL`, the deployed site still loads (weather, AI and map tiles work), but it shows a banner saying reports are unavailable.
+
+## How submissions work
+
+```
+User submits → Pending review → Admin approves or rejects (optional reason)
+            → Approved + public → shown in the community feed and on the map
+```
+
+- **Every** new hazard or crime report starts as *pending*. It never appears publicly until an admin approves it.
+- The feed and map refresh every 30 seconds and whenever the tab regains focus, so approved reports appear without a reload. Deleted reports disappear immediately.
+- Submitters see their reports' status (and any rejection reason) under **Account → My submissions**. They can delete their own reports there, and admins can delete any report. Deletion asks for confirmation, and the server checks ownership.
+
+### Crime reports: visibility and identity are separate settings
+
+| | Named | Anonymous |
+|---|---|---|
+| **Public** | Shown after approval with the reporter's name | Shown after approval without any name or photo |
+| **Confidential** | Only admins and the reporter can see it. Admins can see contact details to follow up. | Only admins and the reporter can see it. The identity is hidden from admins too. |
+
+- Approval never changes visibility: a confidential report stays confidential.
+- Public crime reports only show an **approximate location** (about a 1 km grid) and the nearest locality name, never the typed address.
+- Photos are re-encoded on the server, which removes all metadata (including GPS). Report photos are served through an access-checked route, so confidential photos are never publicly reachable.
+- **Anonymity limits (explained in the form):** an anonymous report is still linked to the account in the database so the reporter can track and delete it, and anyone with direct database access could see that link. The report's text, photos and location could also identify someone. IP addresses are not stored with reports.
+
+### Emergency contacts
+
+Admins manage emergency contacts (phone, SMS, email) in **Admin portal → Emergency contacts**. They appear in the sidebar and on `/emergency` as `tel:`, `sms:` and `mailto:` links. Only Rescue 1122 and Police 15 are seeded; add other numbers only after verifying them. The app states clearly that submitting a report does not contact emergency services.
 
 ## Where things live
 
 ```
-app/                  pages (Home, map, report, community, weather, assistant, reports/[id])
-app/api/ai/chat       AI chat endpoint (server)
-app/api/ai/risk       AI risk-analysis endpoint (server)
-app/api/weather       weather endpoint (server)
-services/aiService.ts       AI provider calls + demo fallback   ← AI key is used here
-services/weatherService.ts  weather providers                    ← connect a real weather API here
-services/reportService.ts   report data layer                    ← swap for a database later
-lib/ai/systemPrompt.ts      assistant instructions / knowledge base
-lib/ai/context.ts           app data injected into every AI request
-lib/ai/demo.ts              demo responses when no key is set
-lib/mapConfig.ts            map centre, bounds and tile layers
-lib/store.tsx               shared session state (reports, likes, comments, chat)
-data/                       demo reports, alerts, weather, locations
-components/                 UI components (map, hazards, community, weather, ai, …)
-scripts/generate-demo-images.mjs   regenerates the illustrated demo photos in public/demo
+app/api/auth/*            sign up, sign in, sign out, current user
+app/api/reports/*         public list, submit, view, delete, like, comment
+app/api/me/reports        the user's own submissions
+app/api/admin/*           review queue, approve/reject, emergency contacts (admin only)
+app/api/profile/*         profile details and photo
+app/api/images/[id]       images, with the same access rules as their report
+app/api/weather           live weather for a place or coordinates
+lib/server/db/schema.ts   database tables (Drizzle ORM)
+drizzle/                  SQL migrations (npm run db:generate after schema changes)
+lib/server/reports.ts     report queries + the single place where visibility rules apply
+lib/server/auth.ts        password hashing, sessions, role checks
+lib/server/images.ts      image validation and metadata stripping
+services/weatherService.ts  weather provider (Open-Meteo)
+services/aiService.ts     AI provider calls + demo fallback
+lib/i18n/                 English/Urdu text
 ```
 
-## English and Urdu
+## Security notes
 
-Use the **اردو / English** button in the top bar to switch languages. Urdu switches the whole layout to right-to-left and uses the Noto Naskh Arabic font. The choice is remembered in the browser.
-
-- UI text: `lib/i18n/dictionary.ts` (every English key must also have an Urdu entry; TypeScript enforces this).
-- Hazard types, severities, place names and weather terms: `lib/i18n/terms.ts`.
-- Demo reports, comments and alerts carry Urdu translations in `data/`. Reports that users submit are shown as they were written.
-- The AI answers in the selected language. The live AI is told which language to use, and the demo answers exist in both.
-
-## How data flows
-
-A submitted report goes into the shared store (`lib/store.tsx`). The community feed, the map and the dashboard all read from that same list, so the report shows up in all three immediately. Data lasts for the browser session; a refresh resets it to the demo data. To persist it, replace the functions in `services/reportService.ts` with API or database calls.
-
-## Deploy to Vercel
-
-1. Push this folder to a GitHub repository.
-2. In Vercel, click **Add New → Project** and import the repo. The framework is detected as Next.js, so no settings are needed.
-3. Optional: add `AI_API_KEY` (and the other variables above) under **Settings → Environment Variables**, then redeploy.
-
-Or use the CLI: `npx vercel` (preview) and then `npx vercel --prod`.
-
-## Notes
-
-- Community reports and AI output are informational only, not official warnings. The UI says so, and the AI is instructed never to claim certainty.
-- Map tiles are keyless: Esri World Topo, Street and Imagery, plus OpenTopoMap.
+- Passwords are hashed with scrypt. Sessions are random tokens in an httpOnly cookie, and only a hash is stored.
+- Admin checks happen on the server for every admin route; the UI only hides buttons.
+- State-changing requests from other websites are rejected (Origin check, SameSite cookies).
+- Sign-in, sign-up and submissions are rate-limited per server instance.

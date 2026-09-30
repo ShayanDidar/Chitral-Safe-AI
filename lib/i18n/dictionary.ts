@@ -454,10 +454,16 @@ const en = {
   "weather.unavailable": "Live weather is unavailable right now, so sample data is shown. Try refreshing in a moment.",
   "legend.safety": "Safety report (approx. area)",
   "crime.occurredShort": "Occurred",
-  "demo.title": "Quick demo access",
-  "demo.admin": "Sign in as Demo Admin",
-  "demo.user": "Sign in as Demo Reporter",
-  "demo.note": "Demo accounts for testing — no password needed. Anyone can use them while demo mode is on.",
+  "demo.title": "Demo accounts",
+  "demo.admin": "Admin",
+  "demo.user": "User",
+  "demo.note": "For testing. No password needed.",
+  "places.title": "Places",
+  "places.elevation": "About {m} m above sea level",
+  "places.weather": "Weather here",
+  "places.home": "Places in Chitral",
+  "places.homeSub": "Valleys and passes to check before you travel",
+  "places.onMap": "Map",
 } as const;
 
 export type DictKey = keyof typeof en;
@@ -911,10 +917,16 @@ const ur: Record<DictKey, string> = {
   "weather.unavailable": "تازہ موسم اس وقت دستیاب نہیں، اس لیے نمونہ ڈیٹا دکھایا جا رہا ہے۔ تھوڑی دیر بعد دوبارہ کوشش کریں۔",
   "legend.safety": "حفاظتی رپورٹ (تقریبی علاقہ)",
   "crime.occurredShort": "وقوع کا وقت",
-  "demo.title": "فوری ڈیمو رسائی",
-  "demo.admin": "ڈیمو ایڈمن کے طور پر سائن اِن کریں",
-  "demo.user": "ڈیمو رپورٹر کے طور پر سائن اِن کریں",
-  "demo.note": "ٹیسٹنگ کے لیے ڈیمو اکاؤنٹس — پاس ورڈ کی ضرورت نہیں۔ ڈیمو موڈ فعال ہونے تک کوئی بھی انہیں استعمال کر سکتا ہے۔",
+  "demo.title": "ڈیمو اکاؤنٹس",
+  "demo.admin": "ایڈمن",
+  "demo.user": "یوزر",
+  "demo.note": "ٹیسٹنگ کے لیے۔ پاس ورڈ کی ضرورت نہیں۔",
+  "places.title": "مقامات",
+  "places.elevation": "سطح سمندر سے تقریباً {m} میٹر بلند",
+  "places.weather": "یہاں کا موسم",
+  "places.home": "چترال کے مقامات",
+  "places.homeSub": "سفر سے پہلے دیکھنے والی وادیاں اور درے",
+  "places.onMap": "نقشہ",
 };
 
 export const DICTIONARIES: Record<"en" | "ur", Record<DictKey, string>> = { en, ur };

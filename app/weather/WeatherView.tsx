@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { LOCATIONS } from "@/data/locations";
 import { CloudRain, Droplets, Gauge, Table2, TriangleAlert, Wind } from "lucide-react";
 import { useHazardStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -12,7 +14,14 @@ import { WeatherLocationBar } from "@/components/weather/WeatherLocationBar";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export function WeatherView() {
-  const { weather, weatherStatus } = useHazardStore();
+  const { weather, weatherStatus, setWeatherPlace } = useHazardStore();
+  const placeParam = useSearchParams().get("place");
+
+  // /weather?place=shandur opens that place's weather.
+  useEffect(() => {
+    const loc = LOCATIONS.find((l) => l.id === placeParam);
+    if (loc) setWeatherPlace({ name: loc.name, lat: loc.coordinates.lat, lng: loc.coordinates.lng, kind: "preset" });
+  }, [placeParam, setWeatherPlace]);
   const c = weather.current;
   const { t, place, condition, locale } = useI18n();
   const day = (date: string, i: number) => fmtDay(date, i, t("weather.today"), locale);

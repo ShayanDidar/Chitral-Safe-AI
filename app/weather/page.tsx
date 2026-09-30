@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { WeatherView } from "./WeatherView";
 
 export const metadata: Metadata = { title: "Weather" };
 
 export default function WeatherPage() {
-  return <WeatherView />;
+  return (
+    <Suspense>
+      <WeatherView />
+    </Suspense>
+  );
 }

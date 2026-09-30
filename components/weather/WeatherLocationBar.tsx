@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { Loader2, LocateFixed, RefreshCw, TriangleAlert } from "lucide-react";
-import { LOCATIONS, PRIMARY_LOCATION_IDS, nearestLocation } from "@/data/locations";
+import { LOCATIONS, PICKER_LOCATION_IDS, nearestLocation } from "@/data/locations";
 import { useHazardStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn, formatDateTime } from "@/lib/utils";
 import { Card, DemoBadge } from "@/components/ui/primitives";
 import { TimeAgo } from "@/components/ui/TimeAgo";
 
-const PRIMARY = PRIMARY_LOCATION_IDS.map((id) => LOCATIONS.find((l) => l.id === id)!);
+const PRIMARY = PICKER_LOCATION_IDS.map((id) => LOCATIONS.find((l) => l.id === id)!);
 
 /** Distance in km (haversine) — used to name the user's current location. */
 function km(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {

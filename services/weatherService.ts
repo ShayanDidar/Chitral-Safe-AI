@@ -12,7 +12,7 @@
  * so the UI can say so honestly instead of breaking.
  */
 import { buildDemoWeather } from "@/data/weather";
-import { LOCATIONS, PRIMARY_LOCATION_IDS } from "@/data/locations";
+import { LOCATIONS, PICKER_LOCATION_IDS } from "@/data/locations";
 import type { WeatherData, WeatherIcon } from "@/types";
 
 export interface WeatherPoint {
@@ -57,7 +57,7 @@ interface OpenMeteoResponse {
 }
 
 async function fetchOpenMeteo(point?: WeatherPoint): Promise<WeatherData> {
-  const locs = PRIMARY_LOCATION_IDS.map((id) => LOCATIONS.find((l) => l.id === id)!);
+  const locs = PICKER_LOCATION_IDS.map((id) => LOCATIONS.find((l) => l.id === id)!);
   // First coordinate is the selected point; the rest feed "Conditions across Chitral".
   const main0 = point ?? { lat: locs[0].coordinates.lat, lng: locs[0].coordinates.lng, name: locs[0].name };
   const points = [main0, ...locs.map((l) => ({ lat: l.coordinates.lat, lng: l.coordinates.lng }))];

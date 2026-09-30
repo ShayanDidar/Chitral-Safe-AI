@@ -15,6 +15,7 @@ import { WeatherIconGlyph } from "@/components/weather/WeatherIconGlyph";
 import { RiskDisclaimer, RiskLevelPill, RiskScoreBar } from "@/components/ai/RiskSummary";
 import { AskAIPrompt } from "@/components/ai/AskAIPrompt";
 import { Page } from "@/components/layout/Page";
+import { FeaturedPlaces } from "@/components/places/FeaturedPlaces";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export default function HomePage() {
@@ -97,7 +98,7 @@ export default function HomePage() {
       <section className="grid gap-4 lg:grid-cols-3">
         <Card className="relative overflow-hidden lg:col-span-2">
           <div className="h-[340px] sm:h-[440px]">
-            <MapView reports={reports} compact />
+            <MapView reports={reports} compact showPlaces />
           </div>
           <div className="pointer-events-none absolute right-3 top-3 z-[500]">
             <Link href="/map" className={cn(btn.base, btn.secondary, btn.sm, "pointer-events-auto shadow-float")}>
@@ -118,6 +119,8 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      <FeaturedPlaces />
 
       {/* Recent reports */}
       <section className="space-y-3">

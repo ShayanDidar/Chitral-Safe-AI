@@ -4,7 +4,8 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import L from "leaflet";
-import { Circle, LayersControl, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { Circle, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { featuredLocations } from "@/data/locations";
 import { ArrowRight, Lock, MapPin } from "lucide-react";
 import { BASE_LAYERS, MAP_CONFIG } from "@/lib/mapConfig";
 import { HAZARD_TYPES } from "@/lib/hazards";
@@ -14,7 +15,7 @@ import { TimeAgo } from "@/components/ui/TimeAgo";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import type { Report } from "@/types";
-import { reportIcon } from "./markerIcons";
+import { placeIcon, reportIcon } from "./markerIcons";
 
 export interface MapViewProps {
   reports: Report[];
@@ -32,6 +33,10 @@ export interface MapViewProps {
   zoom?: number;
   className?: string;
   onSelect?: (id: string) => void;
+  /** Show labelled featured places (Kalash, Shandur, …). */
+  showPlaces?: boolean;
+  /** Pan to a point (e.g. a featured place); change `key` to repeat. */
+  flyToPoint?: { lat: number; lng: number; zoom: number; key: number } | null;
 }
 
 export default function MapViewInner({
@@ -45,6 +50,8 @@ export default function MapViewInner({
   zoom,
   className,
   onSelect,
+  showPlaces = false,
+  flyToPoint,
 }: MapViewProps) {
   const markers = useRef(new Map<string, L.Marker>());
 
@@ -115,7 +122,9 @@ export default function MapViewInner({
         </Marker>
       ))}
 
+      {showPlaces && <PlaceMarkers />}
       <FocusController flyTo={flyTo} markers={markers} interactive={interactive} />
+      <PointController point={flyToPoint} />
       <AutoResize />
     </MapContainer>
   );
@@ -171,6 +180,44 @@ function ReportPopup({ report, admin }: { report: Report; admin: boolean }) {
       </div>
     </div>
   );
+}
+
+function PlaceMarkers() {
+  const { t, place, lang } = useI18n();
+  return (
+    <>
+      {featuredLocations().map(({ id, loc, note, noteUr }) => (
+        <Marker key={id} position={[loc.coordinates.lat, loc.coordinates.lng]} icon={placeIcon} zIndexOffset={-100}>
+          <Tooltip direction="right" offset={[8, 0]} permanent className="place-label">
+            {place(loc.name)}
+          </Tooltip>
+          <Popup>
+            <div className="space-y-1.5 p-3.5" dir={lang === "ur" ? "rtl" : "ltr"}>
+              <p className="text-sm font-semibold text-slate-900">{place(loc.name)}</p>
+              <p className="text-[13px] text-slate-600">{lang === "ur" ? noteUr : note}</p>
+              <p className="text-xs text-slate-500">
+                {t("places.elevation", { m: loc.elevationM.toLocaleString("en") })}
+              </p>
+              <Link href={`/weather?place=${id}`} className="inline-block text-xs font-semibold text-brand-700 hover:underline">
+                {t("places.weather")}
+              </Link>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </>
+  );
+}
+
+function PointController({ point }: { point?: { lat: number; lng: number; zoom: number; key: number } | null }) {
+  const map = useMap();
+  const key = point?.key;
+  useEffect(() => {
+    if (!point) return;
+    map.flyTo([point.lat, point.lng], point.zoom, { duration: 0.8 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, map]);
+  return null;
 }
 
 function FocusController({

@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Create account" };
 
 export default function PageSignup() {
   return (
-    <Page narrow className="flex min-h-[70vh] items-center">
+    <Page narrow className="pt-12 lg:pt-16">
       <Suspense>
         <AuthForm mode="signup" demoEnabled={demoLoginEnabled()} />
       </Suspense>

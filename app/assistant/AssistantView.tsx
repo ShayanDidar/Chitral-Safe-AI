@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BookOpen, ChevronDown, CloudSun, Loader2, Radar, TriangleAlert, Users } from "lucide-react";
-import { PRIMARY_LOCATION_IDS, LOCATIONS } from "@/data/locations";
+import { PICKER_LOCATION_IDS, LOCATIONS } from "@/data/locations";
 import { useHazardStore, useActiveReports } from "@/lib/store";
 import { useScopedRisk } from "@/lib/useAIContext";
 import { cn } from "@/lib/utils";
@@ -37,7 +37,7 @@ function RiskAnalysisPanel() {
   const [scope, setScope] = useState<string>("all");
 
   const scopes = [
-    ...PRIMARY_LOCATION_IDS.map((id) => LOCATIONS.find((l) => l.id === id)!.name),
+    ...PICKER_LOCATION_IDS.map((id) => LOCATIONS.find((l) => l.id === id)!.name),
     ...new Set(reports.map((r) => r.locationName)),
   ].filter((v, i, arr) => arr.indexOf(v) === i);
 

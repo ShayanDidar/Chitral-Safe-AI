@@ -11,11 +11,12 @@ import { MapLegend, MapView } from "@/components/map";
 import { HazardListItem } from "@/components/hazards/HazardCard";
 import { ReportFilters, useReportFilters } from "@/components/hazards/ReportFilters";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
+import { featuredLocations } from "@/data/locations";
 
 export function LiveMapView() {
   const params = useSearchParams();
   const { reports } = useHazardStore();
-  const { t } = useI18n();
+  const { t, place } = useI18n();
   const { filters, setFilters, filtered, locations } = useReportFilters(reports);
   const initialFocus = params.get("focus");
   const [selectedId, setSelectedId] = useState<string | null>(initialFocus);
@@ -27,6 +28,32 @@ export function LiveMapView() {
     setFlyTo((prev) => ({ id, key: (prev?.key ?? 0) + 1 }));
   };
   const [sheetOpen, setSheetOpen] = useState(false);
+  const initialPlace = featuredLocations().find((p) => p.id === params.get("place"));
+  const [flyToPoint, setFlyToPoint] = useState<{ lat: number; lng: number; zoom: number; key: number } | null>(
+    initialPlace ? { ...initialPlace.loc.coordinates, zoom: 11, key: 0 } : null,
+  );
+  const goToPlace = (lat: number, lng: number) => {
+    setFlyToPoint((prev) => ({ lat, lng, zoom: 11, key: (prev?.key ?? 0) + 1 }));
+    setSheetOpen(false);
+  };
+
+  const places = (
+    <div className="px-2 pb-1 pt-2">
+      <p className="px-1 text-xs font-medium text-slate-500">{t("places.title")}</p>
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
+        {featuredLocations().map(({ id, loc }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => goToPlace(loc.coordinates.lat, loc.coordinates.lng)}
+            className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 hover:border-slate-400"
+          >
+            {place(loc.name)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
   const activeCount = filtered.filter((r) => r.status !== "resolved").length;
 
   const list = (
@@ -67,12 +94,16 @@ export function LiveMapView() {
           </div>
           <ReportFilters filters={filters} setFilters={setFilters} locations={locations} layout="stack" />
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-2">{list}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+          {places}
+          <div className="my-2 border-t border-slate-100" />
+          {list}
+        </div>
       </aside>
 
       {/* Map */}
       <div className="relative min-w-0 flex-1">
-        <MapView reports={filtered} selectedId={selectedId} flyTo={flyTo} onSelect={setSelectedId} />
+        <MapView reports={filtered} selectedId={selectedId} flyTo={flyTo} onSelect={setSelectedId} showPlaces flyToPoint={flyToPoint} />
         <MapLegend className="absolute bottom-6 left-3 z-[500] hidden sm:block" />
 
         {/* Mobile controls */}
@@ -110,7 +141,11 @@ export function LiveMapView() {
               <div className="border-b border-slate-100 p-3">
                 <ReportFilters filters={filters} setFilters={setFilters} locations={locations} layout="stack" />
               </div>
-              <div className="min-h-0 flex-1 overflow-y-auto p-2">{list}</div>
+              <div className="min-h-0 flex-1 overflow-y-auto p-2">
+                {places}
+                <div className="my-2 border-t border-slate-100" />
+                {list}
+              </div>
             </div>
           </div>
         )}

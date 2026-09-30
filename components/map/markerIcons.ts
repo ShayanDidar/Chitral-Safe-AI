@@ -81,3 +81,12 @@ export const pickIcon = L.divIcon({
   iconSize: [34, 44],
   iconAnchor: [17, 43],
 });
+
+/** Small neutral pin for featured places (not a report). */
+export const placeIcon = L.divIcon({
+  className: "place-marker",
+  html: '<span class="place-dot"></span>',
+  iconSize: [12, 12],
+  iconAnchor: [6, 6],
+  popupAnchor: [0, -6],
+});

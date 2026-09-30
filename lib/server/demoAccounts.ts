@@ -4,8 +4,8 @@
  * before handling real reports.
  */
 export const DEMO_ACCOUNTS = {
-  admin: { email: "demo-admin@chitralsafe.test", name: "Demo Admin", role: "admin" },
-  user: { email: "demo-reporter@chitralsafe.test", name: "Demo Reporter", role: "user" },
+  admin: { email: "admin@chitralsafe.test", name: "Admin", role: "admin" },
+  user: { email: "user@chitralsafe.test", name: "User", role: "user" },
 } as const;
 
 export type DemoAccount = keyof typeof DEMO_ACCOUNTS;

@@ -15,7 +15,7 @@ With no configuration, the app uses an embedded Postgres database (PGlite, store
 
 ### Create an admin
 
-For demos, the sign-in page has **Sign in as Demo Admin** and **Sign in as Demo Reporter** buttons (no password). They are on by default. **Anyone who opens the site can use them**, so set `DEMO_LOGIN=false` before handling real reports.
+For demos, the sign-in page has **Admin** and **User** demo buttons (no password; admin@chitralsafe.test and user@chitralsafe.test). They are on by default. **Anyone who opens the site can use them**, so set `DEMO_LOGIN=false` before handling real reports.
 
 For real admins, pick one:
 

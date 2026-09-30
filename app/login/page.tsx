@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Sign in" };
 
 export default function PageLogin() {
   return (
-    <Page narrow className="flex min-h-[70vh] items-center">
+    <Page narrow className="pt-12 lg:pt-16">
       <Suspense>
         <AuthForm mode="login" demoEnabled={demoLoginEnabled()} />
       </Suspense>

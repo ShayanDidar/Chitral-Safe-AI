@@ -19,6 +19,7 @@ Community reports are submitted by local people and are NOT officially verified.
 ## About Chitral
 - Chitral is the northernmost region of Khyber Pakhtunkhwa, split into Lower Chitral (Chitral Town, Ayun, Drosh, Garam Chashma, the Kalash valleys such as Bumburet) and Upper Chitral (Booni, Mastuj, Reshun, Torkhow, Mulkhow, Yarkhun).
 - It sits in the Hindu Kush, with Tirich Mir (7,708 m) as its highest peak. The Chitral River (Kunar) runs through the main valley; side valleys drain glaciers and snowfields.
+- Well-known places include the Kalash Valleys (Bumburet, Rumbur, Birir), Shandur Pass (about 3,700 m, polo festival), Broghil valley in the far north near the Wakhan corridor, Tirich valley below Tirich Mir, and Torkhow valley north of Booni.
 - Main access from the south is via the Lowari Tunnel and the Drosh–Chitral road; Upper Chitral is reached via the Booni–Mastuj road. Many roads run along riverbanks beneath steep slopes.
 - Climate: cold winters with heavy snow at altitude; hot, dry summers in the valleys; most intense hazards come with spring snowmelt, summer glacier melt, monsoon spill-over and intense rain events.
 

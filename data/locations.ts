@@ -11,7 +11,28 @@ export const LOCATIONS: ChitralLocation[] = [
   { id: "reshun", name: "Reshun", area: "Upper Chitral", coordinates: { lat: 36.1617, lng: 72.1242 }, elevationM: 1850 },
   { id: "bumburet", name: "Bumburet", area: "Lower Chitral", coordinates: { lat: 35.7358, lng: 71.6781 }, elevationM: 1950 },
   { id: "lowari", name: "Lowari Tunnel", area: "Lower Chitral", coordinates: { lat: 35.4169, lng: 71.7894 }, elevationM: 2400 },
+  // Featured valleys and passes (approximate centre points).
+  { id: "kalash", name: "Kalash Valleys", area: "Lower Chitral", coordinates: { lat: 35.7240, lng: 71.6900 }, elevationM: 2000 },
+  { id: "shandur", name: "Shandur", area: "Upper Chitral", coordinates: { lat: 36.0725, lng: 72.5390 }, elevationM: 3700 },
+  { id: "broghil", name: "Broghil", area: "Upper Chitral", coordinates: { lat: 36.8450, lng: 73.3700 }, elevationM: 3300 },
+  { id: "tirich", name: "Tirich", area: "Upper Chitral", coordinates: { lat: 36.3150, lng: 71.9400 }, elevationM: 2800 },
+  { id: "torkhow", name: "Torkhow", area: "Upper Chitral", coordinates: { lat: 36.3700, lng: 72.1000 }, elevationM: 2600 },
 ];
+
+/** Places highlighted on the map, home page, weather and report form. */
+export const FEATURED_PLACES: { id: string; note: string; noteUr: string }[] = [
+  { id: "kalash", note: "Bumburet, Rumbur and Birir, home of the Kalash people.", noteUr: "بمبوریت، رمبور اور بریر، کالاش لوگوں کا گھر۔" },
+  { id: "lowari", note: "Main road link to Dir and down-country.", noteUr: "دیر اور ملک کے باقی حصوں سے مرکزی سڑک۔" },
+  { id: "shandur", note: "High pass at about 3,700 m, home of the Shandur polo festival.", noteUr: "تقریباً 3,700 میٹر بلند درہ، شندور پولو میلے کی جگہ۔" },
+  { id: "broghil", note: "Remote high valley in the far north, near the Wakhan corridor.", noteUr: "انتہائی شمال میں واخان کے قریب دور دراز بلند وادی۔" },
+  { id: "tirich", note: "Valley below Tirich Mir, the highest peak of the Hindu Kush.", noteUr: "ہندوکش کی بلند ترین چوٹی ترچ میر کے دامن میں وادی۔" },
+  { id: "torkhow", note: "Upper Chitral valley north of Booni.", noteUr: "بونی کے شمال میں اپر چترال کی وادی۔" },
+];
+
+export const featuredLocations = () => FEATURED_PLACES.map((f) => ({ ...f, loc: LOCATIONS.find((l) => l.id === f.id)! }));
+
+/** Primary towns plus featured places, without duplicates (for pickers). */
+export const PICKER_LOCATION_IDS = ["chitral-town", "ayun", "drosh", "booni", "mastuj", "garam-chashma", ...FEATURED_PLACES.map((f) => f.id)];
 
 /** The six primary locations shown in weather summaries. */
 export const PRIMARY_LOCATION_IDS = ["chitral-town", "ayun", "drosh", "booni", "mastuj", "garam-chashma"];

@@ -17,7 +17,7 @@ import {
   PhoneCall,
   Trash2,
 } from "lucide-react";
-import { LOCATIONS, PRIMARY_LOCATION_IDS, findLocationByName, nearestLocation } from "@/data/locations";
+import { LOCATIONS, PICKER_LOCATION_IDS, findLocationByName, nearestLocation } from "@/data/locations";
 import { HAZARD_TYPES, HAZARD_TYPE_LIST, SEVERITIES, SEVERITY_LIST } from "@/lib/hazards";
 import { CRIME_CATEGORIES, CRIME_ICONS } from "@/lib/crime";
 import { MAP_CONFIG } from "@/lib/mapConfig";
@@ -36,7 +36,7 @@ const inputCls =
 
 const MAX_DESC = 2000;
 const MAX_PHOTOS = 4;
-const PRIMARY = PRIMARY_LOCATION_IDS.map((id) => LOCATIONS.find((l) => l.id === id)!);
+const PRIMARY = PICKER_LOCATION_IDS.map((id) => LOCATIONS.find((l) => l.id === id)!);
 const [[MIN_LAT, MIN_LNG], [MAX_LAT, MAX_LNG]] = MAP_CONFIG.maxBounds;
 
 type Field = "type" | "location" | "description" | "severity" | "image" | "occurredAt" | "visibility";

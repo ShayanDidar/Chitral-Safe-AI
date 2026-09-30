@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { featuredLocations } from "@/data/locations";
+import { mapPlaces } from "@/data/locations";
 import { useHazardStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { WeatherIconGlyph } from "@/components/weather/WeatherIconGlyph";
@@ -18,7 +18,7 @@ export function FeaturedPlaces() {
         <p className="text-[13px] text-slate-500">{t("places.homeSub")}</p>
       </div>
       <ul className="grid gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 sm:grid-cols-2 lg:grid-cols-3">
-        {featuredLocations().map(({ id, loc, note, noteUr }) => {
+        {mapPlaces().map(({ id, loc, note, noteUr }) => {
           const w = weather.locations.find((l) => l.locationId === id);
           return (
             <li key={id} className="flex flex-col bg-white p-4">

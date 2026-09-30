@@ -57,6 +57,7 @@ export function buildDemoWeather(now = Date.now()): WeatherData {
       { locationId: "booni", name: "Booni", temperature: 14, condition: "Rain", icon: "rain", rainProbability: 69 },
       { locationId: "mastuj", name: "Mastuj", temperature: 11, condition: "Cloudy", icon: "cloudy", rainProbability: 55 },
       { locationId: "garam-chashma", name: "Garam Chashma", temperature: 13, condition: "Showers", icon: "drizzle", rainProbability: 61 },
+      { locationId: "brep", name: "Brep", temperature: 9, condition: "Cloudy", icon: "cloudy", rainProbability: 42 },
       { locationId: "kalash", name: "Kalash Valleys", temperature: 15, condition: "Light Rain", icon: "drizzle", rainProbability: 70 },
       { locationId: "lowari", name: "Lowari Tunnel", temperature: 9, condition: "Cloudy", icon: "cloudy", rainProbability: 58 },
       { locationId: "shandur", name: "Shandur", temperature: 3, condition: "Snow", icon: "snow", rainProbability: 45 },

@@ -17,6 +17,7 @@ export const LOCATIONS: ChitralLocation[] = [
   { id: "broghil", name: "Broghil", area: "Upper Chitral", coordinates: { lat: 36.8450, lng: 73.3700 }, elevationM: 3300 },
   { id: "tirich", name: "Tirich", area: "Upper Chitral", coordinates: { lat: 36.3150, lng: 71.9400 }, elevationM: 2800 },
   { id: "torkhow", name: "Torkhow", area: "Upper Chitral", coordinates: { lat: 36.3700, lng: 72.1000 }, elevationM: 2600 },
+  { id: "brep", name: "Brep", area: "Upper Chitral", coordinates: { lat: 36.4760, lng: 72.7100 }, elevationM: 2600 },
 ];
 
 /** Places highlighted on the map, home page, weather and report form. */
@@ -29,10 +30,28 @@ export const FEATURED_PLACES: { id: string; note: string; noteUr: string }[] = [
   { id: "torkhow", note: "Upper Chitral valley north of Booni.", noteUr: "بونی کے شمال میں اپر چترال کی وادی۔" },
 ];
 
-export const featuredLocations = () => FEATURED_PLACES.map((f) => ({ ...f, loc: LOCATIONS.find((l) => l.id === f.id)! }));
+/** Main towns, shown and labelled alongside the featured places. */
+export const TOWN_PLACES: { id: string; note: string; noteUr: string }[] = [
+  { id: "chitral-town", note: "District headquarters on the Chitral River.", noteUr: "دریائے چترال کے کنارے ضلعی ہیڈکوارٹر۔" },
+  { id: "ayun", note: "Gateway to the Kalash Valleys, south of Chitral Town.", noteUr: "کالاش وادیوں کا دروازہ، چترال ٹاؤن کے جنوب میں۔" },
+  { id: "drosh", note: "Main town of Lower Chitral on the road to Lowari.", noteUr: "لواری جانے والی سڑک پر لوئر چترال کا بڑا قصبہ۔" },
+  { id: "garam-chashma", note: "Valley known for its hot springs, west of Chitral Town.", noteUr: "گرم پانی کے چشموں کے لیے مشہور وادی، چترال ٹاؤن کے مغرب میں۔" },
+  { id: "booni", note: "Headquarters of Upper Chitral.", noteUr: "اپر چترال کا ہیڈکوارٹر۔" },
+  { id: "mastuj", note: "Historic town on the road to Shandur and Gilgit.", noteUr: "شندور اور گلگت جانے والی سڑک پر تاریخی قصبہ۔" },
+  { id: "brep", note: "Village in the Yarkhun valley, beyond Mastuj.", noteUr: "مستوج سے آگے یارخون وادی کا گاؤں۔" },
+];
+
+type PlaceEntry = { id: string; note: string; noteUr: string; kind: "town" | "featured"; loc: ChitralLocation };
+const withLoc = (list: { id: string; note: string; noteUr: string }[], kind: PlaceEntry["kind"]): PlaceEntry[] =>
+  list.map((f) => ({ ...f, kind, loc: LOCATIONS.find((l) => l.id === f.id)! }));
+
+export const featuredLocations = () => withLoc(FEATURED_PLACES, "featured");
+export const townLocations = () => withLoc(TOWN_PLACES, "town");
+/** Towns first, then featured valleys and passes. */
+export const mapPlaces = () => [...townLocations(), ...featuredLocations()];
 
 /** Primary towns plus featured places, without duplicates (for pickers). */
-export const PICKER_LOCATION_IDS = ["chitral-town", "ayun", "drosh", "booni", "mastuj", "garam-chashma", ...FEATURED_PLACES.map((f) => f.id)];
+export const PICKER_LOCATION_IDS = ["chitral-town", "ayun", "drosh", "booni", "mastuj", "garam-chashma", "brep", ...FEATURED_PLACES.map((f) => f.id)];
 
 /** The six primary locations shown in weather summaries. */
 export const PRIMARY_LOCATION_IDS = ["chitral-town", "ayun", "drosh", "booni", "mastuj", "garam-chashma"];

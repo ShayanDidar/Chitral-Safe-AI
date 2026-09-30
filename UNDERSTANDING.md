@@ -70,9 +70,11 @@ Nothing goes public until an admin approves it. This stops fake or harmful posts
 
 ---
 
-## 4. Featured places
+## 4. Places on the map
 
-These places are highlighted across the site:
+**Main towns** are shown with a dark square and a bold label: Chitral Town, Ayun, Drosh, Garam Chashma, Booni, Mastuj and Brep.
+
+**Featured valleys and passes** are shown with a round dot:
 
 - **Kalash Valleys**: Bumburet, Rumbur and Birir, home of the Kalash people.
 - **Lowari Tunnel**: the main road link to Dir and down-country.
@@ -81,7 +83,7 @@ These places are highlighted across the site:
 - **Tirich**: the valley below Tirich Mir, the highest peak of the Hindu Kush.
 - **Torkhow**: a valley in Upper Chitral, north of Booni.
 
-They appear as labelled dots on the map. The home page has a "Places in Chitral" section that shows each place's current temperature, with links to its map view and weather. They can also be chosen on the weather page and in the report form.
+All of them are labelled on the map and listed under "Places" on the Live Map, where clicking a name moves the map there. The home page has a "Places in Chitral" section that shows each place's current temperature, with links to its map view and weather. They can also be chosen on the weather page and in the report form.
 
 The map positions are approximate centre points of each valley or pass.
 

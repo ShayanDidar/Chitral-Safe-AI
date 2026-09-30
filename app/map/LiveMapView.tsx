@@ -11,7 +11,7 @@ import { MapLegend, MapView } from "@/components/map";
 import { HazardListItem } from "@/components/hazards/HazardCard";
 import { ReportFilters, useReportFilters } from "@/components/hazards/ReportFilters";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
-import { featuredLocations } from "@/data/locations";
+import { featuredLocations, mapPlaces, townLocations } from "@/data/locations";
 
 export function LiveMapView() {
   const params = useSearchParams();
@@ -28,7 +28,7 @@ export function LiveMapView() {
     setFlyTo((prev) => ({ id, key: (prev?.key ?? 0) + 1 }));
   };
   const [sheetOpen, setSheetOpen] = useState(false);
-  const initialPlace = featuredLocations().find((p) => p.id === params.get("place"));
+  const initialPlace = mapPlaces().find((p) => p.id === params.get("place"));
   const [flyToPoint, setFlyToPoint] = useState<{ lat: number; lng: number; zoom: number; key: number } | null>(
     initialPlace ? { ...initialPlace.loc.coordinates, zoom: 11, key: 0 } : null,
   );
@@ -39,19 +39,28 @@ export function LiveMapView() {
 
   const places = (
     <div className="px-2 pb-1 pt-2">
-      <p className="px-1 text-xs font-medium text-slate-500">{t("places.title")}</p>
-      <div className="mt-1.5 flex flex-wrap gap-1.5">
-        {featuredLocations().map(({ id, loc }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => goToPlace(loc.coordinates.lat, loc.coordinates.lng)}
-            className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 hover:border-slate-400"
-          >
-            {place(loc.name)}
-          </button>
-        ))}
-      </div>
+      {(
+        [
+          ["places.towns", townLocations()],
+          ["places.valleys", featuredLocations()],
+        ] as const
+      ).map(([label, list]) => (
+        <div key={label} className="mb-2">
+          <p className="px-1 text-xs font-medium text-slate-500">{t(label)}</p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {list.map(({ id, loc }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => goToPlace(loc.coordinates.lat, loc.coordinates.lng)}
+                className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 hover:border-slate-400"
+              >
+                {place(loc.name)}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
   const activeCount = filtered.filter((r) => r.status !== "resolved").length;

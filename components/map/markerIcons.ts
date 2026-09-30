@@ -90,3 +90,12 @@ export const placeIcon = L.divIcon({
   iconAnchor: [6, 6],
   popupAnchor: [0, -6],
 });
+
+/** Filled square pin for main towns. */
+export const townIcon = L.divIcon({
+  className: "place-marker",
+  html: '<span class="town-dot"></span>',
+  iconSize: [12, 12],
+  iconAnchor: [6, 6],
+  popupAnchor: [0, -6],
+});

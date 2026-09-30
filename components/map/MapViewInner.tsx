@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import L from "leaflet";
 import { Circle, LayersControl, MapContainer, Marker, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
-import { featuredLocations } from "@/data/locations";
+import { mapPlaces } from "@/data/locations";
 import { ArrowRight, Lock, MapPin } from "lucide-react";
 import { BASE_LAYERS, MAP_CONFIG } from "@/lib/mapConfig";
 import { HAZARD_TYPES } from "@/lib/hazards";
@@ -15,7 +15,7 @@ import { TimeAgo } from "@/components/ui/TimeAgo";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import type { Report } from "@/types";
-import { placeIcon, reportIcon } from "./markerIcons";
+import { placeIcon, reportIcon, townIcon } from "./markerIcons";
 
 export interface MapViewProps {
   reports: Report[];
@@ -33,7 +33,7 @@ export interface MapViewProps {
   zoom?: number;
   className?: string;
   onSelect?: (id: string) => void;
-  /** Show labelled featured places (Kalash, Shandur, …). */
+  /** Show labelled towns and featured places (Chitral Town, Shandur, …). */
   showPlaces?: boolean;
   /** Pan to a point (e.g. a featured place); change `key` to repeat. */
   flyToPoint?: { lat: number; lng: number; zoom: number; key: number } | null;
@@ -186,9 +186,14 @@ function PlaceMarkers() {
   const { t, place, lang } = useI18n();
   return (
     <>
-      {featuredLocations().map(({ id, loc, note, noteUr }) => (
-        <Marker key={id} position={[loc.coordinates.lat, loc.coordinates.lng]} icon={placeIcon} zIndexOffset={-100}>
-          <Tooltip direction="right" offset={[8, 0]} permanent className="place-label">
+      {mapPlaces().map(({ id, loc, note, noteUr, kind }) => (
+        <Marker
+          key={id}
+          position={[loc.coordinates.lat, loc.coordinates.lng]}
+          icon={kind === "town" ? townIcon : placeIcon}
+          zIndexOffset={-100}
+        >
+          <Tooltip direction="right" offset={[8, 0]} permanent className={kind === "town" ? "place-label town-label" : "place-label"}>
             {place(loc.name)}
           </Tooltip>
           <Popup>

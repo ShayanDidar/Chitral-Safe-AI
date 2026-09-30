@@ -95,6 +95,7 @@ export const PLACE_TERMS: Record<string, string> = {
   Broghil: "بروغل",
   Tirich: "تریچ",
   Torkhow: "تورکہو",
+  Brep: "بریپ",
   "Lower Chitral": "لوئر چترال",
   "Upper Chitral": "اپر چترال",
   "Chitral Valley": "وادئ چترال",

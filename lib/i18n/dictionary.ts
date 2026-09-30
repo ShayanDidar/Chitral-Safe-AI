@@ -462,8 +462,10 @@ const en = {
   "places.elevation": "About {m} m above sea level",
   "places.weather": "Weather here",
   "places.home": "Places in Chitral",
-  "places.homeSub": "Valleys and passes to check before you travel",
+  "places.homeSub": "Towns, valleys and passes to check before you travel",
   "places.onMap": "Map",
+  "places.towns": "Towns",
+  "places.valleys": "Valleys and passes",
 } as const;
 
 export type DictKey = keyof typeof en;
@@ -925,8 +927,10 @@ const ur: Record<DictKey, string> = {
   "places.elevation": "سطح سمندر سے تقریباً {m} میٹر بلند",
   "places.weather": "یہاں کا موسم",
   "places.home": "چترال کے مقامات",
-  "places.homeSub": "سفر سے پہلے دیکھنے والی وادیاں اور درے",
+  "places.homeSub": "سفر سے پہلے دیکھنے والے قصبے، وادیاں اور درے",
   "places.onMap": "نقشہ",
+  "places.towns": "قصبے",
+  "places.valleys": "وادیاں اور درے",
 };
 
 export const DICTIONARIES: Record<"en" | "ur", Record<DictKey, string>> = { en, ur };

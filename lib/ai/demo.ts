@@ -146,9 +146,11 @@ function demoChatEn(intent: Intent, ctx: AIContext | null): string {
       "",
       ...bullets,
       "",
-      w.rainProbability >= 60
+      w.rainProbability >= 60 && w.precipitationMm >= 10
         ? "With this much rain expected, streams may rise and slopes may become unstable. Avoid riverbanks and check road reports before travelling."
-        : "Conditions look fairly settled, but mountain weather can change quickly.",
+        : w.rainProbability >= 60
+          ? "Only light rain is expected, but roads and paths may be slippery. Take care on mountain roads."
+          : "Conditions look fairly settled, but mountain weather can change quickly.",
     ].join("\n");
   }
 
@@ -347,9 +349,11 @@ function demoChatUr(intent: Intent, ctx: AIContext | null): string {
           ? [`- کل: ${urCondition(tomorrow.condition)}، ${tomorrow.low} سے ${tomorrow.high}°C، بارش کا امکان ${tomorrow.rainProbability}%۔`]
           : []),
         "",
-        w.rainProbability >= 60
+        w.rainProbability >= 60 && w.precipitationMm >= 10
           ? "اتنی بارش کی توقع کے ساتھ ندی نالوں میں پانی بڑھ سکتا ہے اور ڈھلوانیں غیر مستحکم ہو سکتی ہیں۔ دریا کے کناروں سے دور رہیں اور سفر سے پہلے سڑکوں کی رپورٹس دیکھیں۔"
-          : "حالات کافی حد تک پرسکون ہیں، لیکن پہاڑی موسم تیزی سے بدل سکتا ہے۔",
+          : w.rainProbability >= 60
+            ? "صرف ہلکی بارش متوقع ہے، لیکن سڑکیں اور راستے پھسلن والے ہو سکتے ہیں۔ پہاڑی سڑکوں پر احتیاط کریں۔"
+            : "حالات کافی حد تک پرسکون ہیں، لیکن پہاڑی موسم تیزی سے بدل سکتا ہے۔",
       ].join("\n");
     }
 

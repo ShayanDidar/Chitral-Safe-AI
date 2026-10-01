@@ -171,7 +171,11 @@ Extra protections:
 - Real weather comes from **Open-Meteo**, a free service that needs **no API key and no sign-up**.
 - You can choose a town, a featured place, or "My location" (the browser asks your permission first).
 - Your location is rounded to about 1 km and **never saved**.
-- The page shows when the weather was last observed.
+- The page shows when the weather was last updated.
+- Chitral has no public weather station feed, so the numbers are **forecast-model estimates** (like Google or any weather app), usually within 2–3°C of reality.
+- In the mountains temperature drops about 6°C for every 1,000 m. The app tells Open-Meteo the **real height of each town** (from `data/locations.ts`), so a pin that sits on a nearby slope does not give a too-cold reading.
+- If the model says "snow" but the town is clearly above freezing (4°C or more), the app shows rain instead.
+- A high chance of only a little rain shows a calm "some rain likely" note; the orange "heavy rain" warning appears only when 10 mm or more is expected.
 - Weather is loaded on the server together with the page, so visitors see real values straight away.
 - Open-Meteo is free but sometimes briefly busy. The app tries again, and if it still fails it keeps showing the **last real reading** (with its time). Only if there has never been a reading does it show sample weather, clearly labelled.
 - Each reading is reused for 15 minutes, which keeps well within Open-Meteo's free limits.

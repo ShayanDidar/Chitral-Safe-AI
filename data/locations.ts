@@ -7,7 +7,7 @@ export const LOCATIONS: ChitralLocation[] = [
   { id: "drosh", name: "Drosh", area: "Lower Chitral", coordinates: { lat: 35.5611, lng: 71.7955 }, elevationM: 1300 },
   { id: "booni", name: "Booni", area: "Upper Chitral", coordinates: { lat: 36.2683, lng: 72.2528 }, elevationM: 2050 },
   { id: "mastuj", name: "Mastuj", area: "Upper Chitral", coordinates: { lat: 36.2869, lng: 72.5164 }, elevationM: 2350 },
-  { id: "garam-chashma", name: "Garam Chashma", area: "Lower Chitral", coordinates: { lat: 36.0122, lng: 71.5561 }, elevationM: 2000 },
+  { id: "garam-chashma", name: "Garam Chashma", area: "Lower Chitral", coordinates: { lat: 35.9930, lng: 71.5594 }, elevationM: 2230 },
   { id: "reshun", name: "Reshun", area: "Upper Chitral", coordinates: { lat: 36.1617, lng: 72.1242 }, elevationM: 1850 },
   { id: "bumburet", name: "Bumburet", area: "Lower Chitral", coordinates: { lat: 35.7358, lng: 71.6781 }, elevationM: 1950 },
   { id: "lowari", name: "Lowari Tunnel", area: "Lower Chitral", coordinates: { lat: 35.4169, lng: 71.7894 }, elevationM: 2400 },
@@ -16,7 +16,7 @@ export const LOCATIONS: ChitralLocation[] = [
   { id: "shandur", name: "Shandur", area: "Upper Chitral", coordinates: { lat: 36.0725, lng: 72.5390 }, elevationM: 3700 },
   { id: "broghil", name: "Broghil", area: "Upper Chitral", coordinates: { lat: 36.8450, lng: 73.3700 }, elevationM: 3300 },
   { id: "tirich", name: "Tirich", area: "Upper Chitral", coordinates: { lat: 36.3150, lng: 71.9400 }, elevationM: 2800 },
-  { id: "torkhow", name: "Torkhow", area: "Upper Chitral", coordinates: { lat: 36.3700, lng: 72.1000 }, elevationM: 2600 },
+  { id: "torkhow", name: "Torkhow", area: "Upper Chitral", coordinates: { lat: 36.4546, lng: 72.4196 }, elevationM: 2370 },
   { id: "brep", name: "Brep", area: "Upper Chitral", coordinates: { lat: 36.4760, lng: 72.7100 }, elevationM: 2600 },
 ];
 

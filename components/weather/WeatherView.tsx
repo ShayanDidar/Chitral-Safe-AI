@@ -27,6 +27,8 @@ export function WeatherView() {
   const day = (date: string, i: number) => fmtDay(date, i, t("weather.today"), locale);
   const [showTable, setShowTable] = useState(false);
   const wet = c.rainProbability >= 60;
+  // A high chance of only a little rain is not "heavy rain".
+  const heavy = wet && c.precipitationMm >= 10;
 
   return (
     <Page>
@@ -45,7 +47,18 @@ export function WeatherView() {
         )}
         aria-busy={weatherStatus === "loading"}
       >
-      {wet && (
+      {wet && !heavy && (
+        <div className="flex items-start gap-3 rounded-2xl bg-sky-50 p-4 ring-1 ring-inset ring-sky-600/20">
+          <CloudRain className="mt-0.5 size-5 shrink-0 text-sky-700" aria-hidden />
+          <div className="text-sm">
+            <p className="font-semibold text-sky-900">
+              {t("weather.lightTitle", { p: c.rainProbability, mm: Math.max(1, c.precipitationMm) })}
+            </p>
+            <p className="mt-0.5 text-sky-800">{t("weather.lightBody")}</p>
+          </div>
+        </div>
+      )}
+      {heavy && (
         <div className="flex items-start gap-3 rounded-2xl bg-orange-50 p-4 ring-1 ring-inset ring-orange-600/20">
           <TriangleAlert className="mt-0.5 size-5 shrink-0 text-orange-700" aria-hidden />
           <div className="text-sm">

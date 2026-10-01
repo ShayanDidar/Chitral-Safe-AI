@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { Card, btn } from "@/components/ui/primitives";
@@ -16,7 +16,7 @@ import {
   fetchContacts,
   updateContact,
   type ContactInput,
-} from "@/services/apiClient";
+} from "@/lib/api";
 import type { EmergencyContact } from "@/types";
 
 const inputCls =
@@ -27,7 +27,7 @@ const EMPTY: ContactInput = { region: "Chitral", label: "", labelUr: "", kind: "
 /** Admin management of the emergency contacts shown across the app. */
 export function AdminContacts() {
   const { t } = useI18n();
-  const { setContacts } = useHazardStore();
+  const { setContacts } = useAppStore();
   const [contacts, setAll] = useState<EmergencyContact[] | null>(null);
   const [editing, setEditing] = useState<{ id: string | null; data: ContactInput } | null>(null);
   const [deleting, setDeleting] = useState<EmergencyContact | null>(null);

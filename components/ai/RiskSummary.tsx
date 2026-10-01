@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import type { RiskLevel } from "@/types";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 
-export const RISK_STYLE: Record<RiskLevel, { pill: string; bar: string; text: string }> = {
+const RISK_STYLE: Record<RiskLevel, { pill: string; bar: string; text: string }> = {
   Low: { pill: "bg-green-50 text-green-800 ring-green-600/20", bar: "bg-green-600", text: "text-green-700" },
   Moderate: { pill: "bg-yellow-50 text-yellow-800 ring-yellow-600/25", bar: "bg-yellow-500", text: "text-yellow-700" },
   High: { pill: "bg-orange-50 text-orange-800 ring-orange-600/25", bar: "bg-orange-600", text: "text-orange-700" },

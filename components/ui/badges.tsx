@@ -5,7 +5,7 @@ import { HAZARD_TYPES, SEVERITIES } from "@/lib/hazards";
 import { CRIME_ICONS } from "@/lib/crime";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
-import type { HazardType, Report, ReportStatus, ReviewStatus, Severity } from "@/types";
+import type { Report, ReportStatus, ReviewStatus, Severity } from "@/types";
 
 /** Four-step bar meter so severity is readable without relying on colour. */
 export function SeverityMeter({ severity, className }: { severity: Severity; className?: string }) {
@@ -42,18 +42,6 @@ export function SeverityBadge({ severity, className }: { severity: Severity; cla
     >
       <SeverityMeter severity={severity} />
       {severityLabel(severity)}
-    </span>
-  );
-}
-
-export function HazardTypeLabel({ type, className }: { type: HazardType; className?: string }) {
-  const meta = HAZARD_TYPES[type];
-  const Icon = meta.icon;
-  const { hazard } = useI18n();
-  return (
-    <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium text-slate-700", className)}>
-      <Icon className="size-3.5 text-slate-500" aria-hidden />
-      {hazard(type)}
     </span>
   );
 }

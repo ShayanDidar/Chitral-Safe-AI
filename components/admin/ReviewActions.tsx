@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { btn } from "@/components/ui/primitives";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
-import { reviewReport } from "@/services/apiClient";
+import { reviewReport } from "@/lib/api";
 import type { Report } from "@/types";
 
 /** Approve / reject controls for admins. The API re-checks the admin role. */

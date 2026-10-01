@@ -8,6 +8,4 @@ export const DEMO_ACCOUNTS = {
   user: { email: "user@chitralsafe.test", name: "User", role: "user" },
 } as const;
 
-export type DemoAccount = keyof typeof DEMO_ACCOUNTS;
-
 export const demoLoginEnabled = () => process.env.DEMO_LOGIN !== "false";

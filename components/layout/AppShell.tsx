@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Languages, Phone, Plus, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { btn } from "@/components/ui/primitives";
 import { WeatherIconGlyph } from "@/components/weather/WeatherIconGlyph";
@@ -17,7 +17,7 @@ import { NAV_ITEMS, isActive } from "./nav";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { weather, weatherStatus, user, offline } = useHazardStore();
+  const { weather, weatherStatus, user, offline } = useAppStore();
   const { t, condition, locale } = useI18n();
 
   return (

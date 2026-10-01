@@ -1,9 +1,11 @@
+/**
+ * Small shared building blocks (buttons, cards, headers, avatar).
+ * Badges that need the current language live in ./badges.tsx and are re-exported here.
+ */
 import type { ReactNode } from "react";
-import { HAZARD_TYPES, SEVERITIES } from "@/lib/hazards";
 import { cn } from "@/lib/utils";
-import type { HazardType, Severity } from "@/types";
 
-export { SeverityBadge, SeverityMeter, HazardTypeLabel, StatusPill, DemoBadge, ReviewBadge, ReportIcon, ReportTag } from "./badges";
+export { SeverityBadge, SeverityMeter, StatusPill, DemoBadge, ReviewBadge, ReportIcon, ReportTag } from "./badges";
 
 export const btn = {
   base: "inline-flex items-center justify-center gap-2 rounded-xl text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 disabled:pointer-events-none",
@@ -62,41 +64,6 @@ export function PageHeader({
     </div>
   );
 }
-
-
-
-
-export function HazardIcon({
-  type,
-  severity,
-  size = "md",
-  className,
-}: {
-  type: HazardType;
-  severity?: Severity;
-  size?: "sm" | "md" | "lg";
-  className?: string;
-}) {
-  const Icon = HAZARD_TYPES[type].icon;
-  const s = severity ? SEVERITIES[severity] : null;
-  return (
-    <span
-      className={cn(
-        "grid shrink-0 place-items-center rounded-xl",
-        s ? cn(s.soft, s.text) : "bg-slate-100 text-slate-600",
-        size === "sm" && "size-8",
-        size === "md" && "size-10",
-        size === "lg" && "size-12",
-        className,
-      )}
-    >
-      <Icon className={size === "lg" ? "size-6" : size === "md" ? "size-5" : "size-4"} aria-hidden />
-    </span>
-  );
-}
-
-
-
 
 export function Avatar({ name, src, className }: { name: string; src?: string | null; className?: string }) {
   if (src) {

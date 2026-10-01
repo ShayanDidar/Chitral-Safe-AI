@@ -466,6 +466,10 @@ const en = {
   "places.onMap": "Map",
   "places.towns": "Towns",
   "places.valleys": "Valleys and passes",
+  "admin.restoreDemo": "Restore demo reports",
+  "admin.restoreDemoTitle": "Restore the demo reports?",
+  "admin.restoreDemoBody": "Adds back the 11 sample hazard reports if they are missing, deleted or rejected. Reports from real users are not changed.",
+  "admin.restoreDemoDone": "{n} demo reports restored.",
 } as const;
 
 export type DictKey = keyof typeof en;
@@ -931,6 +935,10 @@ const ur: Record<DictKey, string> = {
   "places.onMap": "نقشہ",
   "places.towns": "قصبے",
   "places.valleys": "وادیاں اور درے",
+  "admin.restoreDemo": "ڈیمو رپورٹس بحال کریں",
+  "admin.restoreDemoTitle": "کیا ڈیمو رپورٹس بحال کریں؟",
+  "admin.restoreDemoBody": "اگر 11 نمونہ رپورٹس غائب، حذف یا مسترد ہوں تو انہیں واپس لاتا ہے۔ اصل صارفین کی رپورٹس تبدیل نہیں ہوتیں۔",
+  "admin.restoreDemoDone": "{n} ڈیمو رپورٹس بحال ہو گئیں۔",
 };
 
 export const DICTIONARIES: Record<"en" | "ur", Record<DictKey, string>> = { en, ur };

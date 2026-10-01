@@ -9,7 +9,7 @@
 import sharp from "sharp";
 import { badRequest } from "./http";
 
-export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const ALLOWED = new Set(["jpeg", "png", "webp", "gif", "heif", "avif"]);
 
 export async function processImage(file: File, maxDim: number) {

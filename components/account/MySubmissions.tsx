@@ -3,19 +3,19 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { EyeOff, Loader2, Lock, Plus } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn, formatDateTime } from "@/lib/utils";
 import { Card, PageHeader, ReportIcon, ReviewBadge, btn } from "@/components/ui/primitives";
-import { DeleteReportButton } from "@/components/hazards/DeleteReportButton";
-import { fetchMyReports } from "@/services/apiClient";
+import { DeleteReportButton } from "@/components/reports/DeleteReportButton";
+import { fetchMyReports } from "@/lib/api";
 import type { Report } from "@/types";
 import { AccountTabs } from "./AccountTabs";
 
 /** The signed-in user's own reports, with their review status. */
 export function MySubmissions() {
   const { t, label, place, report: localize, lang } = useI18n();
-  const { user } = useHazardStore();
+  const { user } = useAppStore();
   const [reports, setReports] = useState<Report[] | null>(null);
   const [error, setError] = useState(false);
 

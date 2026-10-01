@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowLeft, EyeOff, Heart, Loader2, Lock, Map as MapIcon, MapPin, ShieldCheck } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { HAZARD_TYPES, SEVERITIES } from "@/lib/hazards";
 import { CRIME_ICONS } from "@/lib/crime";
 import { cn, formatDateTime } from "@/lib/utils";
@@ -13,15 +13,15 @@ import { TimeAgo } from "@/components/ui/TimeAgo";
 import { Page } from "@/components/layout/Page";
 import { MapView } from "@/components/map";
 import { CommentThread, ReportAuthorAvatar, useSignInRedirect } from "@/components/community/CommunityPost";
-import { ReportImagePlaceholder } from "@/components/hazards/HazardCard";
-import { DeleteReportButton } from "@/components/hazards/DeleteReportButton";
+import { ReportImagePlaceholder } from "@/components/reports/ReportCard";
+import { DeleteReportButton } from "@/components/reports/DeleteReportButton";
 import { ReviewActions } from "@/components/admin/ReviewActions";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
-import { fetchReport } from "@/services/apiClient";
+import { fetchReport } from "@/lib/api";
 import type { Report } from "@/types";
 
 export function ReportDetailView({ id }: { id: string }) {
-  const { getReport, toggleLike, user, refreshReports } = useHazardStore();
+  const { getReport, toggleLike, user, refreshReports } = useAppStore();
   const router = useRouter();
   const signIn = useSignInRedirect();
   const { t, label, severity, severityDesc, place, authorName, report: localize, lang } = useI18n();

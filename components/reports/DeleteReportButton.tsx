@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { btn } from "@/components/ui/primitives";
@@ -24,7 +24,7 @@ export function DeleteReportButton({
   compact?: boolean;
   className?: string;
 }) {
-  const { user, deleteReport } = useHazardStore();
+  const { user, deleteReport } = useAppStore();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   if (!user || (!report.mine && user.role !== "admin")) return null;

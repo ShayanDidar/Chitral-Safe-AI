@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { LiveMapView } from "./LiveMapView";
+import { LiveMapView } from "@/components/map/LiveMapView";
 
 export const metadata: Metadata = { title: "Live Map" };
 

@@ -4,14 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ClipboardList, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { Avatar, btn } from "@/components/ui/primitives";
-import { logout } from "@/services/apiClient";
+import { logout } from "@/lib/api";
 
 export function AccountMenu() {
-  const { user, setUser } = useHazardStore();
+  const { user, setUser } = useAppStore();
   const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();

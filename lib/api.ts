@@ -69,6 +69,7 @@ export const fetchAdminReports = (f: AdminFilter) =>
   api<{ reports: Report[]; counts: Partial<Record<Report["review"], number>> }>(
     `/api/admin/reports?${new URLSearchParams(f)}`,
   );
+export const restoreDemoReports = () => api<{ changed: number }>("/api/admin/demo-data", json("POST")).then((r) => r.changed);
 export const reviewReport = (id: string, action: "approve" | "reject", reason?: string) =>
   api<{ report: Report }>(`/api/admin/reports/${id}`, json("PATCH", { action, reason })).then((r) => r.report);
 

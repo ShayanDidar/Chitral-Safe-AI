@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowUp, RotateCcw, Sparkles } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
-import { useAIContextBuilder } from "@/lib/useAIContext";
-import { askAssistant } from "@/services/apiClient";
+import { useAppStore } from "@/lib/store";
+import { useAIContextBuilder } from "@/lib/ai/hooks";
+import { askAssistant } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { DemoBadge } from "@/components/ui/primitives";
 import { Markdown } from "./Markdown";
@@ -13,7 +13,7 @@ import { useI18n } from "@/lib/i18n/LanguageProvider";
 const SUGGESTED_QUESTIONS = ["ai.q1", "ai.q2", "ai.q3", "ai.q4", "ai.q5", "ai.q6"] as const;
 
 export function AIChat({ initialQuestion, onConsumedInitial }: { initialQuestion?: string | null; onConsumedInitial?: () => void }) {
-  const { chat, setChat, aiMode, setAiMode } = useHazardStore();
+  const { chat, setChat, aiMode, setAiMode } = useAppStore();
   const buildContext = useAIContextBuilder();
   const { t, lang } = useI18n();
   const [input, setInput] = useState("");

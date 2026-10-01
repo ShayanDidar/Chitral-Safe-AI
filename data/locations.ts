@@ -21,7 +21,7 @@ export const LOCATIONS: ChitralLocation[] = [
 ];
 
 /** Places highlighted on the map, home page, weather and report form. */
-export const FEATURED_PLACES: { id: string; note: string; noteUr: string }[] = [
+const FEATURED_PLACES: { id: string; note: string; noteUr: string }[] = [
   { id: "kalash", note: "Bumburet, Rumbur and Birir, home of the Kalash people.", noteUr: "بمبوریت، رمبور اور بریر، کالاش لوگوں کا گھر۔" },
   { id: "lowari", note: "Main road link to Dir and down-country.", noteUr: "دیر اور ملک کے باقی حصوں سے مرکزی سڑک۔" },
   { id: "shandur", note: "High pass at about 3,700 m, home of the Shandur polo festival.", noteUr: "تقریباً 3,700 میٹر بلند درہ، شندور پولو میلے کی جگہ۔" },
@@ -31,7 +31,7 @@ export const FEATURED_PLACES: { id: string; note: string; noteUr: string }[] = [
 ];
 
 /** Main towns, shown and labelled alongside the featured places. */
-export const TOWN_PLACES: { id: string; note: string; noteUr: string }[] = [
+const TOWN_PLACES: { id: string; note: string; noteUr: string }[] = [
   { id: "chitral-town", note: "District headquarters on the Chitral River.", noteUr: "دریائے چترال کے کنارے ضلعی ہیڈکوارٹر۔" },
   { id: "ayun", note: "Gateway to the Kalash Valleys, south of Chitral Town.", noteUr: "کالاش وادیوں کا دروازہ، چترال ٹاؤن کے جنوب میں۔" },
   { id: "drosh", note: "Main town of Lower Chitral on the road to Lowari.", noteUr: "لواری جانے والی سڑک پر لوئر چترال کا بڑا قصبہ۔" },
@@ -53,8 +53,6 @@ export const mapPlaces = () => [...townLocations(), ...featuredLocations()];
 /** Primary towns plus featured places, without duplicates (for pickers). */
 export const PICKER_LOCATION_IDS = ["chitral-town", "ayun", "drosh", "booni", "mastuj", "garam-chashma", "brep", ...FEATURED_PLACES.map((f) => f.id)];
 
-/** The six primary locations shown in weather summaries. */
-export const PRIMARY_LOCATION_IDS = ["chitral-town", "ayun", "drosh", "booni", "mastuj", "garam-chashma"];
 
 export const DEFAULT_LOCATION = LOCATIONS[0];
 

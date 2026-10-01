@@ -4,18 +4,18 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { ChevronDown, ListFilter, Plus } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { btn } from "@/components/ui/primitives";
 import { MapLegend, MapView } from "@/components/map";
-import { HazardListItem } from "@/components/hazards/HazardCard";
-import { ReportFilters, useReportFilters } from "@/components/hazards/ReportFilters";
+import { ReportListItem } from "@/components/reports/ReportCard";
+import { ReportFilters, useReportFilters } from "@/components/reports/ReportFilters";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { featuredLocations, mapPlaces, townLocations } from "@/data/locations";
 
 export function LiveMapView() {
   const params = useSearchParams();
-  const { reports } = useHazardStore();
+  const { reports } = useAppStore();
   const { t, place } = useI18n();
   const { filters, setFilters, filtered, locations } = useReportFilters(reports);
   const initialFocus = params.get("focus");
@@ -71,7 +71,7 @@ export function LiveMapView() {
         <p className="px-2 py-8 text-center text-sm text-slate-500">{t("map.none")}</p>
       ) : (
         filtered.map((r) => (
-          <HazardListItem
+          <ReportListItem
             key={r.id}
             report={r}
             active={r.id === selectedId}

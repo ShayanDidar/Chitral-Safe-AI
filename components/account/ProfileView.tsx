@@ -3,12 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { Camera, Check, Loader2, Lock, LogOut, ShieldCheck, Trash2 } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
-import { compressImage } from "@/lib/image";
+import { compressImage } from "@/lib/compressImage";
 import { cn } from "@/lib/utils";
 import { Avatar, Card, PageHeader, btn } from "@/components/ui/primitives";
-import { ApiError, logout, removeAvatar, updateProfile, uploadAvatar } from "@/services/apiClient";
+import { ApiError, logout, removeAvatar, updateProfile, uploadAvatar } from "@/lib/api";
 import { AccountTabs } from "./AccountTabs";
 
 const inputCls =
@@ -17,7 +17,7 @@ const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
 const MAX_BYTES = 8 * 1024 * 1024;
 
 export function ProfileView() {
-  const { user, setUser } = useHazardStore();
+  const { user, setUser } = useAppStore();
   const { t } = useI18n();
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);

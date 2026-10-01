@@ -1,4 +1,4 @@
-import { chat } from "@/services/aiService";
+import { chat } from "@/lib/server/ai";
 import type { AIContext, ChatMessage } from "@/types";
 
 export async function POST(request: Request) {

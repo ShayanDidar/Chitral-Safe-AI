@@ -158,6 +158,7 @@ Extra protections:
 - An admin can **Approve**, **Reject** (with an optional reason the reporter will see), or **Delete**.
 - Approving a confidential report keeps it confidential.
 - The **Admin map** shows every report at its exact location: a dashed ring means pending, faded means rejected, and a lock means confidential.
+- **Restore demo reports** (button in the review queue) brings back the 11 sample hazard reports if they were deleted or rejected. Useful before a demo. The app also adds any missing demo reports automatically when it starts.
 
 ### 6.6 How new reports reach the map
 
@@ -171,7 +172,9 @@ Extra protections:
 - You can choose a town, a featured place, or "My location" (the browser asks your permission first).
 - Your location is rounded to about 1 km and **never saved**.
 - The page shows when the weather was last observed.
-- If Open-Meteo can't be reached, the site shows sample weather and clearly labels it as sample data.
+- Weather is loaded on the server together with the page, so visitors see real values straight away.
+- Open-Meteo is free but sometimes briefly busy. The app tries again, and if it still fails it keeps showing the **last real reading** (with its time). Only if there has never been a reading does it show sample weather, clearly labelled.
+- Each reading is reused for 15 minutes, which keeps well within Open-Meteo's free limits.
 - To use sample data on purpose (for example at an exhibition with no internet), set `WEATHER_PROVIDER=demo`.
 
 ### 6.8 The AI assistant
@@ -206,28 +209,80 @@ Extra protections:
 
 ## 7. Where things are in the code
 
+The project follows one simple rule:
+
+- **`app/`** only decides the **web addresses**. Each `page.tsx` is a few lines that show a screen from `components/`.
+- **`components/`** is **what you see**, grouped by feature.
+- **`lib/`** is **the logic** shared by the screens.
+- **`lib/server/`** is code that **only runs on the server** (database, passwords, photos, weather, AI keys).
+
 ```
-app/                    The pages (each folder is a web address)
-app/api/                The server endpoints that the pages talk to
-  auth/                 sign up, sign in, sign out, demo sign-in
-  reports/              list, submit, view, delete, like, comment
-  admin/                review queue, approve/reject, emergency contacts
-  profile/              edit profile and photo
-  images/               serves photos, checking who is allowed to see them
-  weather/              real weather for a place or a location
-  ai/                   AI chat and risk analysis
-components/             Reusable pieces of the screens (map, cards, forms, …)
-lib/server/             Server-only code
-  db/schema.ts          The database tables
-  auth.ts               Passwords, sessions, admin checks
-  reports.ts            The single place that decides who can see what
-  images.ts             Photo checking and metadata removal
-lib/i18n/               English and Urdu text
-data/                   Demo reports, places, alerts and sample weather
-drizzle/                Database set-up files (migrations)
-services/               Weather and AI connections, and the browser's API calls
-scripts/                Database set-up and "make this user an admin"
+app/                        Web addresses
+  page.tsx                  "/"          → components/home/HomeView
+  map/page.tsx              "/map"       → components/map/LiveMapView
+  report/page.tsx           "/report"    → components/reports/SubmissionForm (hazard)
+  report/crime/page.tsx     "/report/crime" → SubmissionForm (crime)
+  community/page.tsx        "/community" → components/community/CommunityView
+  reports/[id]/page.tsx     one report   → components/reports/ReportDetailView
+  weather/page.tsx          "/weather"   → components/weather/WeatherView
+  assistant/page.tsx        "/assistant" → components/ai/AssistantView
+  emergency/page.tsx        "/emergency" → components/emergency/EmergencyView
+  login, signup, account, admin …
+  api/                      Server endpoints the screens call (see below)
+
+components/                 What you see, by feature
+  home/                     Home dashboard and "Places in Chitral"
+  map/                      Leaflet map, markers, legend, location picker
+  reports/                  Report card, filters, form, detail page, delete button
+  community/                Community feed and comments
+  weather/                  Weather page, charts, place picker
+  ai/                       AI chat and risk summary
+  emergency/                Emergency contacts
+  account/                  Profile and "My submissions"
+  admin/                    Review queue, admin map, contact settings
+  auth/                     Sign-in / sign-up form
+  alerts/                   Alert cards
+  layout/                   Sidebar, top bar, bottom navigation
+  ui/                       Small shared pieces (buttons, cards, badges)
+
+lib/                        Logic shared by the screens
+  store.tsx                 Shared app state (reports, user, weather, chat)
+  api.ts                    Every call from the browser to the server
+  i18n/                     English and Urdu text
+  ai/                       AI instructions, demo answers, data sent to the AI
+  hazards.ts, crime.ts      Hazard types, severities, crime categories
+  mapConfig.ts              Map centre and map styles
+  compressImage.ts          Shrinks photos in the browser before upload
+
+lib/server/                 Server only
+  db/schema.ts              The database tables
+  auth.ts                   Passwords, sessions, admin checks
+  reports.ts                Who can see what (the privacy rules)
+  images.ts                 Photo checking and location-data removal
+  weather.ts                Real weather from Open-Meteo
+  ai.ts                     Talks to Gemini / Claude / OpenAI
+
+data/                       Demo reports, places, alerts, sample weather
+types/                      Shared TypeScript types
+drizzle/                    Database set-up files (migrations)
+scripts/                    Database set-up, make-admin, demo images
 ```
+
+### The server endpoints (`app/api/`)
+
+| Endpoint | What it does |
+|---|---|
+| `auth/*` | Sign up, sign in, sign out, demo sign-in, "who am I" |
+| `reports` | List approved reports; submit a new one |
+| `reports/[id]` | View or delete one report; `like` and `comments` inside |
+| `me/reports` | Your own reports and their status |
+| `admin/reports` | Review queue; approve or reject (admins only) |
+| `admin/contacts` | Add, edit or remove emergency contacts (admins only) |
+| `emergency-contacts` | The public list of emergency contacts |
+| `profile` | Edit your profile and photo |
+| `images/[id]` | Serves photos, checking who is allowed to see them |
+| `weather` | Real weather for a place or a location |
+| `ai/chat`, `ai/risk` | AI answers and risk analysis |
 
 The most important file for privacy is **`lib/server/reports.ts`**. Every report that leaves the server passes through it, and it removes anything a person is not allowed to see.
 

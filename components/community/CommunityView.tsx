@@ -4,20 +4,20 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Camera, Plus } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { HAZARD_TYPES, HAZARD_TYPE_LIST } from "@/lib/hazards";
 import { cn } from "@/lib/utils";
 import { Card, PageHeader, SectionHeader, btn } from "@/components/ui/primitives";
 import { Page } from "@/components/layout/Page";
 import { CommunityPost } from "@/components/community/CommunityPost";
-import { ReportFilters, useReportFilters } from "@/components/hazards/ReportFilters";
+import { ReportFilters, useReportFilters } from "@/components/reports/ReportFilters";
 import { AlertCard } from "@/components/alerts/AlertCard";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export function CommunityView() {
   const params = useSearchParams();
   const highlight = params.get("highlight");
-  const { reports, alerts } = useHazardStore();
+  const { reports, alerts } = useAppStore();
   const { t, hazard } = useI18n();
   const { filters, setFilters, filtered, locations } = useReportFilters(reports);
   const [flash, setFlash] = useState<string | null>(highlight);

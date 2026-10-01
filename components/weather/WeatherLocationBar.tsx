@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Loader2, LocateFixed, RefreshCw, TriangleAlert } from "lucide-react";
 import { LOCATIONS, PICKER_LOCATION_IDS, nearestLocation } from "@/data/locations";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn, formatDateTime } from "@/lib/utils";
 import { Card, DemoBadge } from "@/components/ui/primitives";
@@ -24,7 +24,7 @@ function km(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
  * rounded to ~1 km and never stored).
  */
 export function WeatherLocationBar() {
-  const { weather, weatherStatus, weatherPlace, setWeatherPlace, refreshWeather } = useHazardStore();
+  const { weather, weatherStatus, weatherPlace, setWeatherPlace, refreshWeather } = useAppStore();
   const { t, place, lang } = useI18n();
   const [geo, setGeo] = useState<"idle" | "busy" | "denied" | "unavailable">("idle");
 

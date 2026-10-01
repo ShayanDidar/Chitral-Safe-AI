@@ -2,8 +2,8 @@
  * Database connection (server-only).
  *
  * - With DATABASE_URL set (production / Vercel): connects to that Postgres
- *   database. Run `npm run db:migrate` (done automatically by `npm run build`)
- *   to create tables and seed demo content.
+ *   database. Tables are created by `npm run db:migrate` (run automatically by
+ *   `npm run build`); on startup any missing demo reports are added.
  * - Without DATABASE_URL (local development): uses PGlite, an embedded
  *   Postgres stored in ./.data/pglite, migrated and seeded on first use.
  */
@@ -30,7 +30,16 @@ async function connect(): Promise<DB> {
       max: 5,
       ssl: /localhost|127\.0\.0\.1/.test(url) ? undefined : { rejectUnauthorized: false },
     });
-    return drizzle(pool, { schema, casing: "snake_case" });
+    const db = drizzle(pool, { schema, casing: "snake_case" });
+    // Tables are created at build time; here we only make sure the demo
+    // reports and contacts are present (cheap, and safe to repeat).
+    try {
+      const { seedIfEmpty } = await import("./seed");
+      await seedIfEmpty(db);
+    } catch (err) {
+      console.error("[db] could not check demo data:", err);
+    }
+    return db;
   }
 
   const { PGlite } = await import("@electric-sql/pglite");
@@ -54,4 +63,3 @@ export function getDb(): Promise<DB> {
   return globalThis.__chitralDb;
 }
 
-export { schema };

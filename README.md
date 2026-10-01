@@ -77,23 +77,13 @@ Admins manage emergency contacts (phone, SMS, email) in **Admin portal → Emerg
 
 ## Where things live
 
-```
-app/api/auth/*            sign up, sign in, sign out, current user
-app/api/reports/*         public list, submit, view, delete, like, comment
-app/api/me/reports        the user's own submissions
-app/api/admin/*           review queue, approve/reject, emergency contacts (admin only)
-app/api/profile/*         profile details and photo
-app/api/images/[id]       images, with the same access rules as their report
-app/api/weather           live weather for a place or coordinates
-lib/server/db/schema.ts   database tables (Drizzle ORM)
-drizzle/                  SQL migrations (npm run db:generate after schema changes)
-lib/server/reports.ts     report queries + the single place where visibility rules apply
-lib/server/auth.ts        password hashing, sessions, role checks
-lib/server/images.ts      image validation and metadata stripping
-services/weatherService.ts  weather provider (Open-Meteo)
-services/aiService.ts     AI provider calls + demo fallback
-lib/i18n/                 English/Urdu text
-```
+- `app/`: web addresses only (each page shows a screen from `components/`), plus `app/api/` server endpoints
+- `components/<feature>/`: the screens, grouped by feature (home, map, reports, community, weather, ai, emergency, account, admin)
+- `lib/`: shared logic (`store.tsx` app state, `api.ts` browser→server calls, `i18n/` English/Urdu, `ai/` assistant)
+- `lib/server/`: server-only code (`db/` database, `auth.ts`, `reports.ts` privacy rules, `images.ts`, `weather.ts`, `ai.ts`)
+- `data/`: demo content; `drizzle/`: migrations; `scripts/`: set-up tools
+
+See **UNDERSTANDING.md** for a plain-English walkthrough.
 
 ## Security notes
 

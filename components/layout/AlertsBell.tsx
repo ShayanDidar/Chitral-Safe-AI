@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Bell, X } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { AlertCard } from "@/components/alerts/AlertCard";
 
 export function AlertsBell() {
-  const { alerts } = useHazardStore();
+  const { alerts } = useAppStore();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

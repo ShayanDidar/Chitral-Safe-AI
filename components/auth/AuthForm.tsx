@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { btn } from "@/components/ui/primitives";
-import { ApiError, demoLogin, fetchMe, login, signup } from "@/services/apiClient";
+import { ApiError, demoLogin, fetchMe, login, signup } from "@/lib/api";
 
 const inputCls =
   "mt-1 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-brand-600 focus:outline-none";
@@ -20,7 +20,7 @@ function safeNext(next: string | null) {
 
 export function AuthForm({ mode, demoEnabled = false }: { mode: "login" | "signup"; demoEnabled?: boolean }) {
   const { t } = useI18n();
-  const { setUser } = useHazardStore();
+  const { setUser } = useAppStore();
   const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("next"));

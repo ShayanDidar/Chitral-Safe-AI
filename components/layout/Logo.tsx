@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 
-export function LogoMark({ className }: { className?: string }) {
+function LogoMark({ className }: { className?: string }) {
   return (
     <span className={cn("grid size-9 place-items-center rounded-xl bg-brand-700 text-white shadow-card", className)}>
       <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden>

@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { Mail, MessageSquare, Phone, TriangleAlert } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import type { EmergencyContact } from "@/types";
@@ -12,7 +11,7 @@ const KIND_KEY = { phone: "contact.kind.phone", sms: "contact.kind.sms", email: 
 const ACTION_KEY = { phone: "contact.call", sms: "contact.text", email: "contact.email" } as const;
 
 /** tel:/sms:/mailto: link that opens the device's calling, messaging or email app. */
-export function contactHref(c: EmergencyContact) {
+function contactHref(c: EmergencyContact) {
   const clean = c.value.replace(/[^\d+]/g, "");
   if (c.kind === "phone") return `tel:${clean}`;
   if (c.kind === "sms") return `sms:${clean}`;
@@ -54,7 +53,7 @@ export function NotEmergencyNotice({ className }: { className?: string }) {
 }
 
 export function EmergencyContactList({ variant = "full" }: { variant?: "full" | "sidebar" }) {
-  const { contacts, offline } = useHazardStore();
+  const { contacts, offline } = useAppStore();
   const { t, lang } = useI18n();
   const labelOf = (c: EmergencyContact) => (lang === "ur" && c.labelUr ? c.labelUr : c.label);
 
@@ -107,14 +106,5 @@ export function EmergencyContactList({ variant = "full" }: { variant?: "full" | 
         );
       })}
     </ul>
-  );
-}
-
-export function EmergencyLink({ className }: { className?: string }) {
-  const { t } = useI18n();
-  return (
-    <Link href="/emergency" className={className}>
-      {t("emergency.linkShort")}
-    </Link>
   );
 }

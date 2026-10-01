@@ -5,7 +5,7 @@ import type { HazardType, ReportStatus, Severity } from "@/types";
  * the first time it is set up (see lib/server/db/seed.ts).
  * Timestamps are "minutes before seeding".
  */
-export interface SeedReport {
+interface SeedReport {
   id: string;
   type: HazardType;
   severity: Severity;

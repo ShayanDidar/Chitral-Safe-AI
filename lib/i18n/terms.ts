@@ -5,7 +5,6 @@
 import type { CrimeCategory, HazardType, ReportStatus, ReviewStatus, RiskLevel, Severity, WeatherIcon } from "@/types";
 
 export type Lang = "en" | "ur";
-export const LANGS: Lang[] = ["en", "ur"];
 
 type Pair = { en: string; ur: string };
 
@@ -79,7 +78,7 @@ export const WEATHER_TERMS: Record<WeatherIcon, string> = {
 };
 
 /** Place and area names. Unknown (user-typed) names are shown as written. */
-export const PLACE_TERMS: Record<string, string> = {
+const PLACE_TERMS: Record<string, string> = {
   Chitral: "چترال",
   "Chitral Town": "چترال ٹاؤن",
   Ayun: "ایون",

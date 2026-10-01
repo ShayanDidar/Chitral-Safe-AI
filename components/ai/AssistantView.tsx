@@ -4,8 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BookOpen, ChevronDown, CloudSun, Loader2, Radar, TriangleAlert, Users } from "lucide-react";
 import { PICKER_LOCATION_IDS, LOCATIONS } from "@/data/locations";
-import { useHazardStore, useActiveReports } from "@/lib/store";
-import { useScopedRisk } from "@/lib/useAIContext";
+import { useAppStore, useActiveReports } from "@/lib/store";
+import { useScopedRisk } from "@/lib/ai/hooks";
 import { cn } from "@/lib/utils";
 import { Card, DemoBadge, btn } from "@/components/ui/primitives";
 import { AIChat } from "@/components/ai/AIChat";
@@ -31,7 +31,7 @@ export function AssistantView() {
 }
 
 function RiskAnalysisPanel() {
-  const { reports } = useHazardStore();
+  const { reports } = useAppStore();
   const { result, loading, error, run } = useScopedRisk();
   const { t, place, riskName, lang, bidi } = useI18n();
   const [scope, setScope] = useState<string>("all");
@@ -129,7 +129,7 @@ function RiskAnalysisPanel() {
 }
 
 function ContextPanel() {
-  const { weather, alerts } = useHazardStore();
+  const { weather, alerts } = useAppStore();
   const active = useActiveReports();
   const { t, condition } = useI18n();
   const items = [

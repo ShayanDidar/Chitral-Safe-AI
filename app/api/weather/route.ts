@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { route } from "@/lib/server/http";
-import { getWeather } from "@/services/weatherService";
+import { getWeather } from "@/lib/server/weather";
 
 export const dynamic = "force-dynamic";
 

@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronDown, EyeOff, Loader2, Lock, Map as MapIcon, MapPin, RefreshCw, UserRound } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn, formatDateTime } from "@/lib/utils";
 import { Card, ReportIcon, ReportTag, ReviewBadge, btn } from "@/components/ui/primitives";
 import { TimeAgo } from "@/components/ui/TimeAgo";
-import { DeleteReportButton } from "@/components/hazards/DeleteReportButton";
-import { fetchAdminReports, type AdminFilter } from "@/services/apiClient";
+import { DeleteReportButton } from "@/components/reports/DeleteReportButton";
+import { fetchAdminReports, restoreDemoReports, type AdminFilter } from "@/lib/api";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { Report, ReviewStatus } from "@/types";
 import { ReviewActions } from "./ReviewActions";
 
@@ -18,11 +19,13 @@ const selectCls =
 
 export function AdminQueue() {
   const { t } = useI18n();
-  const { refreshReports } = useHazardStore();
+  const { refreshReports } = useAppStore();
   const [filter, setFilter] = useState<AdminFilter>({ review: "pending", kind: "all", visibility: "all" });
   const [reports, setReports] = useState<Report[] | null>(null);
   const [counts, setCounts] = useState<Partial<Record<ReviewStatus, number>>>({});
   const [error, setError] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const [restoredMsg, setRestoredMsg] = useState<string | null>(null);
 
   const load = useCallback(
     () =>
@@ -111,10 +114,28 @@ export function AdminQueue() {
           <button type="button" onClick={() => void load()} className={cn(btn.base, btn.ghost, btn.sm)} aria-label={t("admin.refresh")}>
             <RefreshCw className="size-4" aria-hidden />
           </button>
+          <button type="button" onClick={() => setRestoring(true)} className={cn(btn.base, btn.secondary, btn.sm)}>
+            {t("admin.restoreDemo")}
+          </button>
         </div>
       </div>
 
+      {restoredMsg && <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">{restoredMsg}</p>}
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
+      <ConfirmDialog
+        open={restoring}
+        tone="primary"
+        title={t("admin.restoreDemoTitle")}
+        body={t("admin.restoreDemoBody")}
+        confirmLabel={t("admin.restoreDemo")}
+        cancelLabel={t("common.cancel")}
+        onClose={() => setRestoring(false)}
+        onConfirm={async () => {
+          const n = await restoreDemoReports();
+          setRestoredMsg(t("admin.restoreDemoDone", { n }));
+          onChanged();
+        }}
+      />
       {!reports && !error && (
         <div className="grid place-items-center py-16">
           <Loader2 className="size-6 animate-spin text-slate-400" aria-label={t("common.loading")} />

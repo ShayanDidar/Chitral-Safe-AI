@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Naskh_Arabic } from "next/font/google";
 import { AppShell } from "@/components/layout/AppShell";
-import { HazardStoreProvider } from "@/lib/store";
+import { AppStoreProvider } from "@/lib/store";
 import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
 import { loadInitialData } from "@/lib/server/bootstrap";
 import "./globals.css";
@@ -49,9 +49,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full">
         <LanguageProvider>
-          <HazardStoreProvider {...initial}>
+          <AppStoreProvider {...initial}>
             <AppShell>{children}</AppShell>
-          </HazardStoreProvider>
+          </AppStoreProvider>
         </LanguageProvider>
       </body>
     </html>

@@ -17,9 +17,9 @@ export interface Filters {
   hideResolved: boolean;
 }
 
-export const EMPTY_FILTERS: Filters = { type: "all", severity: "all", location: "all", query: "", hideResolved: false };
+const EMPTY_FILTERS: Filters = { type: "all", severity: "all", location: "all", query: "", hideResolved: false };
 
-export function applyFilters(reports: Report[], f: Filters) {
+function applyFilters(reports: Report[], f: Filters) {
   const q = f.query.trim().toLowerCase();
   return reports.filter((r) => {
     const terms = r.kind === "hazard" ? HAZARD_TERMS[r.type] : CRIME_TERMS[r.category];

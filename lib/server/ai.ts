@@ -27,7 +27,7 @@ interface AIConfig {
 
 const GEMINI_MODELS = ["gemini-3.6-flash", "gemini-3.1-flash-lite", "gemini-flash-latest"];
 
-export function getAIConfig(): AIConfig | null {
+function getAIConfig(): AIConfig | null {
   const apiKey = process.env.AI_API_KEY?.trim();
   if (!apiKey) return null;
   // Google Gemini keys ("AIza…" or "AQ.…") use Gemini's OpenAI-compatible endpoint.
@@ -76,7 +76,7 @@ export async function chat(messages: ChatMessage[], context: AIContext | null, l
     const reply = await complete(config, system, messages, 900);
     return { reply: reply.trim() || demoChat(lastUser, context, lang), mode: "live" };
   } catch (err) {
-    console.error("[aiService] chat failed, falling back to demo:", err);
+    console.error("[ai] chat failed, falling back to demo:", err);
     return {
       reply: demoChat(lastUser, context, lang),
       mode: "demo",
@@ -119,7 +119,7 @@ export async function analyzeRisk(
       },
     };
   } catch (err) {
-    console.error("[aiService] risk analysis failed, falling back to demo:", err);
+    console.error("[ai] risk analysis failed, falling back to demo:", err);
     return { assessment: fallback, mode: "demo" };
   }
 }
@@ -140,7 +140,7 @@ async function complete(config: AIConfig, system: string, messages: ChatMessage[
       lastError = err;
       const retryable = err instanceof Error && /HTTP (404|429|500|502|503|504)|timeout|aborted/i.test(err.message + err.name);
       if (!retryable) break;
-      console.warn(`[aiService] ${model} unavailable, trying next model`);
+      console.warn(`[ai] ${model} unavailable, trying next model`);
     }
   }
   throw lastError;

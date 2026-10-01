@@ -9,7 +9,8 @@
     "lint": "eslint",
     "db:migrate": "tsx scripts/db-migrate.ts",
     "db:generate": "drizzle-kit generate",
-    "admin:grant": "tsx scripts/admin-grant.ts"
+    "admin:grant": "tsx scripts/admin-grant.ts",
+    "images:generate": "node scripts/generate-demo-images.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",

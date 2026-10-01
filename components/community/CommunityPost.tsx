@@ -4,13 +4,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { ArrowUpRight, Heart, MapPin, MessageCircle, Send, Map as MapIcon, UserRound } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { HAZARD_TYPES } from "@/lib/hazards";
 import { CRIME_ICONS } from "@/lib/crime";
 import { Avatar, Card, ReportTag, StatusPill } from "@/components/ui/primitives";
 import { TimeAgo } from "@/components/ui/TimeAgo";
-import { DeleteReportButton } from "@/components/hazards/DeleteReportButton";
+import { DeleteReportButton } from "@/components/reports/DeleteReportButton";
 import type { Report } from "@/types";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 
@@ -33,7 +33,7 @@ export function ReportAuthorAvatar({ report, className }: { report: Report; clas
 }
 
 export function CommunityPost({ report, highlighted }: { report: Report; highlighted?: boolean }) {
-  const { toggleLike } = useHazardStore();
+  const { toggleLike } = useAppStore();
   const { t, label, place, authorName, report: localize } = useI18n();
   const signIn = useSignInRedirect();
   const text = localize(report);
@@ -143,7 +143,7 @@ export function CommunityPost({ report, highlighted }: { report: Report; highlig
 }
 
 export function CommentThread({ report, showAll = false }: { report: Report; showAll?: boolean }) {
-  const { addComment, user } = useHazardStore();
+  const { addComment, user } = useAppStore();
   const { t, person, comment } = useI18n();
   const signIn = useSignInRedirect();
   const [text, setText] = useState("");

@@ -21,15 +21,26 @@ export interface WeatherPoint {
   name: string;
 }
 
+/** Last real reading per place, used if Open-Meteo is briefly unavailable. */
+const lastGood = new Map<string, WeatherData>();
+
 export async function getWeather(point?: WeatherPoint): Promise<WeatherData> {
   const provider = (process.env.WEATHER_PROVIDER || "open-meteo").toLowerCase();
   if (provider === "demo") return { ...buildDemoWeather(), location: point?.name ?? "Chitral Town" };
-  try {
-    return await fetchOpenMeteo(point);
-  } catch (err) {
-    console.warn("[weatherService] Open-Meteo failed, using sample data:", err);
-    return { ...buildDemoWeather(), location: point?.name ?? "Chitral Town", error: "unavailable" };
+  const key = point ? `${point.lat},${point.lng}` : "default";
+  // Try twice: the free service sometimes answers "busy" (429/503) for a moment.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const data = await fetchOpenMeteo(point);
+      lastGood.set(key, data);
+      return data;
+    } catch (err) {
+      console.warn(`[weather] Open-Meteo attempt ${attempt} failed:`, err instanceof Error ? err.message : err);
+      if (attempt === 1) await new Promise((r) => setTimeout(r, 700));
+    }
   }
+  // Still failing: show the last real reading (its time is shown on screen), otherwise sample data.
+  return lastGood.get(key) ?? { ...buildDemoWeather(), location: point?.name ?? "Chitral Town", error: "unavailable" };
 }
 
 // ---------------------------------------------------------------------------
@@ -71,7 +82,7 @@ async function fetchOpenMeteo(point?: WeatherPoint): Promise<WeatherData> {
     forecast_days: "7",
   });
   const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
-    next: { revalidate: 600 },
+    next: { revalidate: 900 }, // reuse a reading for 15 minutes (weather changes slowly; saves the free quota)
     signal: AbortSignal.timeout(6000),
   });
   if (!res.ok) throw new Error(`Open-Meteo HTTP ${res.status}`);

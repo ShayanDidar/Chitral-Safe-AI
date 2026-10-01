@@ -1,4 +1,4 @@
-import { analyzeRisk } from "@/services/aiService";
+import { analyzeRisk } from "@/lib/server/ai";
 import type { AIContext } from "@/types";
 
 export async function POST(request: Request) {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ReportDetailView } from "./ReportDetailView";
+import { ReportDetailView } from "@/components/reports/ReportDetailView";
 
 export const metadata: Metadata = { title: "Hazard Report" };
 

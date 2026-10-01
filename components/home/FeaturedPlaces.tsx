@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { mapPlaces } from "@/data/locations";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { WeatherIconGlyph } from "@/components/weather/WeatherIconGlyph";
 
 /** Plain list of featured valleys and passes with their current weather. */
 export function FeaturedPlaces() {
-  const { weather, weatherStatus } = useHazardStore();
+  const { weather, weatherStatus } = useAppStore();
   const { t, place, condition, lang } = useI18n();
 
   return (

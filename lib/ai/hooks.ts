@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buildAIContext } from "@/lib/ai/context";
-import { useHazardStore } from "@/lib/store";
-import { requestRiskAnalysis } from "@/services/apiClient";
+import { useAppStore } from "@/lib/store";
+import { requestRiskAnalysis } from "@/lib/api";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import type { AIMode, RiskAssessment } from "@/types";
 
 /** Returns a function that snapshots current app data for the AI. */
 export function useAIContextBuilder() {
-  const { reports, weather, alerts } = useHazardStore();
+  const { reports, weather, alerts } = useAppStore();
   return useCallback(
     (selectedLocation: string | null = null) => buildAIContext({ reports, weather, alerts, selectedLocation }),
     [reports, weather, alerts],
@@ -25,7 +25,7 @@ let wantedLang = "en";
  * Re-runs when the number of reports or the language changes.
  */
 export function useChitralRisk(auto = true) {
-  const { risk, setRisk, reports, setAiMode } = useHazardStore();
+  const { risk, setRisk, reports, setAiMode } = useAppStore();
   const build = useAIContextBuilder();
   const { lang } = useI18n();
   const count = reports.length;
@@ -60,7 +60,7 @@ export function useChitralRisk(auto = true) {
 
 export function useScopedRisk() {
   const build = useAIContextBuilder();
-  const { setAiMode } = useHazardStore();
+  const { setAiMode } = useAppStore();
   const { lang } = useI18n();
   const [result, setResult] = useState<{ assessment: RiskAssessment; mode: AIMode } | null>(null);
   const [loading, setLoading] = useState(false);

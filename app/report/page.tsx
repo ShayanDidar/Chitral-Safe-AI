@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Page } from "@/components/layout/Page";
-import { SubmissionForm } from "@/components/report/SubmissionForm";
-import { ReportHeader } from "./ReportHeader";
+import { SubmissionForm } from "@/components/reports/SubmissionForm";
+import { ReportHeader } from "@/components/reports/ReportHeader";
 
 export const metadata: Metadata = { title: "Report a Hazard" };
 

@@ -11,7 +11,7 @@ import { useI18n } from "@/lib/i18n/LanguageProvider";
 import type { Report } from "@/types";
 
 /** Image for a report: its photo, the hazard illustration, or null (crime without photo). */
-export function reportImage(report: Report) {
+function reportImage(report: Report) {
   return report.imageUrl ?? (report.kind === "hazard" ? HAZARD_TYPES[report.type].image : null);
 }
 
@@ -25,7 +25,7 @@ export function ReportImagePlaceholder({ report, className }: { report: Report; 
   );
 }
 
-export function HazardCard({ report, className }: { report: Report; className?: string }) {
+export function ReportCard({ report, className }: { report: Report; className?: string }) {
   const { t, label, place, report: localize } = useI18n();
   const img = reportImage(report);
   const TypeIcon = report.kind === "hazard" ? HAZARD_TYPES[report.type].icon : CRIME_ICONS[report.category];
@@ -90,7 +90,7 @@ export function HazardCard({ report, className }: { report: Report; className?: 
   );
 }
 
-export function HazardListItem({
+export function ReportListItem({
   report,
   active,
   onClick,

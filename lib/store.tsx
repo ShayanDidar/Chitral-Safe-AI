@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { buildDemoWeather } from "@/data/weather";
 import { buildSeedAlerts } from "@/data/alerts";
 import { DEFAULT_LOCATION, LOCATIONS } from "@/data/locations";
-import * as api from "@/services/apiClient";
+import * as api from "@/lib/api";
 import type {
   AIMode,
   ChatMessage,
@@ -35,7 +35,7 @@ export interface WeatherPlace {
 
 export type WeatherStatus = "loading" | "live" | "sample" | "unavailable";
 
-interface HazardStore {
+interface AppStore {
   /** Approved, public reports (what the feed and public map show). */
   reports: Report[];
   refreshReports: () => Promise<void>;
@@ -70,7 +70,18 @@ interface HazardStore {
   setRisk: (r: RiskState) => void;
 }
 
-const StoreContext = createContext<HazardStore | null>(null);
+const StoreContext = createContext<AppStore | null>(null);
+
+const statusOf = (w: WeatherData): WeatherStatus => (w.error ? "unavailable" : w.source === "demo" ? "sample" : "live");
+
+/*
+ * The app's shared state. Every page reads from here:
+ *  - reports: approved public reports (refreshed from the server every 30 s)
+ *  - user: who is signed in
+ *  - contacts: emergency contacts
+ *  - weather: live weather for the chosen place
+ *  - chat / risk: the AI assistant's conversation and risk summary
+ */
 
 const PLACE_KEY = "chitral-safe-weather-place";
 const REFRESH_MS = 30_000;
@@ -81,25 +92,31 @@ const DEFAULT_PLACE: WeatherPlace = {
   kind: "preset",
 };
 
-export function HazardStoreProvider({
+export function AppStoreProvider({
   children,
   initialReports,
   initialUser,
   initialContacts,
+  initialWeather,
   offline,
 }: {
   children: ReactNode;
   initialReports: Report[];
   initialUser: CurrentUser | null;
   initialContacts: EmergencyContact[];
+  initialWeather: WeatherData | null;
   offline: boolean;
 }) {
   const [reports, setReports] = useState<Report[]>(initialReports);
   const [user, setUserState] = useState<CurrentUser | null>(initialUser);
   const [contacts, setContacts] = useState<EmergencyContact[]>(initialContacts);
   const [alerts] = useState<EnvironmentalAlert[]>(() => buildSeedAlerts());
-  const [weather, setWeather] = useState<WeatherData>(() => buildDemoWeather());
-  const [weatherStatus, setWeatherStatus] = useState<WeatherStatus>("loading");
+  // Real weather comes from the server with the page; sample data is only a placeholder.
+  const [weather, setWeather] = useState<WeatherData>(() => initialWeather ?? buildDemoWeather());
+  const [weatherStatus, setWeatherStatus] = useState<WeatherStatus>(() =>
+    initialWeather ? statusOf(initialWeather) : "loading",
+  );
+  const hasInitialWeather = useRef(!!initialWeather);
   const [weatherPlace, setWeatherPlaceState] = useState<WeatherPlace>(DEFAULT_PLACE);
   const [chat, setChatState] = useState<ChatMessage[]>([]);
   const [aiMode, setAiMode] = useState<AIMode | null>(null);
@@ -198,12 +215,14 @@ export function HazardStoreProvider({
   useEffect(() => {
     let cancelled = false;
     const isDefault = weatherPlace.kind === "preset" && weatherPlace.name === DEFAULT_PLACE.name;
+    // The server already sent today's weather for the default place.
+    if (isDefault && weatherTick === 0 && hasInitialWeather.current) return;
     api
       .fetchWeather(isDefault ? undefined : weatherPlace)
       .then((w) => {
         if (cancelled) return;
         setWeather(w);
-        setWeatherStatus(w.error ? "unavailable" : w.source === "demo" ? "sample" : "live");
+        setWeatherStatus(statusOf(w));
       })
       .catch(() => !cancelled && setWeatherStatus("unavailable"));
     return () => {
@@ -228,7 +247,7 @@ export function HazardStoreProvider({
 
   const setChat = useCallback((update: (prev: ChatMessage[]) => ChatMessage[]) => setChatState(update), []);
 
-  const value = useMemo<HazardStore>(
+  const value = useMemo<AppStore>(
     () => ({
       reports,
       refreshReports,
@@ -285,15 +304,15 @@ export function HazardStoreProvider({
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 
-export function useHazardStore() {
+export function useAppStore() {
   const ctx = useContext(StoreContext);
-  if (!ctx) throw new Error("useHazardStore must be used inside HazardStoreProvider");
+  if (!ctx) throw new Error("useAppStore must be used inside AppStoreProvider");
   return ctx;
 }
 
 /** Public hazard reports that are still ongoing. */
 export function useActiveReports() {
-  const { reports } = useHazardStore();
+  const { reports } = useAppStore();
   return useMemo(
     () => reports.filter((r): r is HazardReport => r.kind === "hazard" && r.status !== "resolved"),
     [reports],

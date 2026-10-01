@@ -7,8 +7,8 @@ import { useI18n } from "@/lib/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/primitives";
 import { MapView } from "@/components/map";
-import { HazardListItem } from "@/components/hazards/HazardCard";
-import { fetchAdminReports } from "@/services/apiClient";
+import { ReportListItem } from "@/components/reports/ReportCard";
+import { fetchAdminReports } from "@/lib/api";
 import type { Report, ReviewStatus } from "@/types";
 
 export function AdminMap() {
@@ -111,7 +111,7 @@ function AdminMapInner() {
           ) : (
             visible.map((r) => (
               <div key={r.id} className="relative">
-                <HazardListItem
+                <ReportListItem
                   report={r}
                   active={r.id === selectedId}
                   onClick={() => {

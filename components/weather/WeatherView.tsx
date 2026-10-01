@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { LOCATIONS } from "@/data/locations";
 import { CloudRain, Droplets, Gauge, Table2, TriangleAlert, Wind } from "lucide-react";
-import { useHazardStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Card, PageHeader, SectionHeader } from "@/components/ui/primitives";
 import { Page } from "@/components/layout/Page";
@@ -14,7 +14,7 @@ import { WeatherLocationBar } from "@/components/weather/WeatherLocationBar";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 
 export function WeatherView() {
-  const { weather, weatherStatus, setWeatherPlace } = useHazardStore();
+  const { weather, weatherStatus, setWeatherPlace } = useAppStore();
   const placeParam = useSearchParams().get("place");
 
   // /weather?place=shandur opens that place's weather.
@@ -36,7 +36,15 @@ export function WeatherView() {
       />
       <WeatherLocationBar />
 
-      <div className={cn("space-y-6 transition-opacity", weatherStatus === "loading" && "pointer-events-none opacity-40")} aria-busy={weatherStatus === "loading"}>
+      {/* While loading, show the previous real data faded; never show the sample placeholder. */}
+      <div
+        className={cn(
+          "space-y-6 transition-opacity",
+          weatherStatus === "loading" && "pointer-events-none opacity-40",
+          weatherStatus === "loading" && weather.source === "demo" && !weather.error && "invisible",
+        )}
+        aria-busy={weatherStatus === "loading"}
+      >
       {wet && (
         <div className="flex items-start gap-3 rounded-2xl bg-orange-50 p-4 ring-1 ring-inset ring-orange-600/20">
           <TriangleAlert className="mt-0.5 size-5 shrink-0 text-orange-700" aria-hidden />

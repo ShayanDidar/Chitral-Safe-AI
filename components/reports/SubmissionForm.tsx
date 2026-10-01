@@ -21,14 +21,14 @@ import { LOCATIONS, PICKER_LOCATION_IDS, findLocationByName, nearestLocation } f
 import { HAZARD_TYPES, HAZARD_TYPE_LIST, SEVERITIES, SEVERITY_LIST } from "@/lib/hazards";
 import { CRIME_CATEGORIES, CRIME_ICONS } from "@/lib/crime";
 import { MAP_CONFIG } from "@/lib/mapConfig";
-import { compressImage } from "@/lib/image";
-import { useHazardStore } from "@/lib/store";
+import { compressImage } from "@/lib/compressImage";
+import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Card, ReviewBadge, SeverityMeter, btn } from "@/components/ui/primitives";
 import { LocationPicker } from "@/components/map";
 import { useI18n } from "@/lib/i18n/LanguageProvider";
 import type { DictKey } from "@/lib/i18n/dictionary";
-import { ApiError, createReport } from "@/services/apiClient";
+import { ApiError, createReport } from "@/lib/api";
 import type { CrimeCategory, HazardType, IdentityMode, LatLng, Report, Severity, Visibility } from "@/types";
 
 const inputCls =
@@ -51,7 +51,7 @@ function localNow() {
 }
 
 export function SubmissionForm({ kind }: { kind: "hazard" | "crime" }) {
-  const { user } = useHazardStore();
+  const { user } = useAppStore();
   if (!user) return <SignInGate kind={kind} />;
   return <SubmissionFormInner kind={kind} />;
 }

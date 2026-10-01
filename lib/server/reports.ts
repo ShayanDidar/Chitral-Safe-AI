@@ -36,7 +36,7 @@ interface Extras {
   comments: ReportComment[];
 }
 
-export function toDto(row: ReportRow, x: Extras, view: View, viewer: SessionUser | null): Report {
+function toDto(row: ReportRow, x: Extras, view: View, viewer: SessionUser | null): Report {
   const anonymous = row.identity === "anonymous";
   const hideExact = view === "public" && row.kind === "crime";
   const place = nearestPlace(row.lat, row.lng);

@@ -109,8 +109,6 @@ export async function requireAdmin() {
   return user;
 }
 
-export const isAdmin = (u: { role: string } | null | undefined) => u?.role === "admin";
-
 /** Emails listed in ADMIN_EMAILS become admins when they sign up or sign in. */
 export function isBootstrapAdmin(email: string) {
   return (process.env.ADMIN_EMAILS ?? "")

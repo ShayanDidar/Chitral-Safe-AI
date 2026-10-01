@@ -3,20 +3,28 @@
  * looks alive at an exhibition. Disable with SEED_DEMO_DATA=false.
  */
 import { randomBytes } from "node:crypto";
-import { count, eq } from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, ne, or } from "drizzle-orm";
 import { LOCATIONS } from "@/data/locations";
 import { SEED_REPORTS } from "@/data/reports";
 import type { DB } from "./index";
 import { comments, emergencyContacts, reports, users } from "./schema";
 
+/**
+ * Makes sure the demo reports and emergency contacts exist.
+ * Safe to run many times: it only adds demo reports that are missing
+ * (it never brings back demo reports an admin deleted).
+ */
 export async function seedIfEmpty(db: DB) {
-  if (process.env.SEED_DEMO_DATA === "false") {
-    await seedContacts(db);
-    return;
-  }
-  const [{ n }] = await db.select({ n: count() }).from(reports);
-  if (n === 0) await seedReports(db);
+  if (process.env.SEED_DEMO_DATA !== "false") await seedReports(db, false);
   await seedContacts(db);
+}
+
+/**
+ * Admin "Restore demo reports" button: adds missing demo reports and brings
+ * back deleted or rejected ones. Returns how many were added or restored.
+ */
+export async function restoreDemoReports(db: DB) {
+  return seedReports(db, true);
 }
 
 /** Demo authors are real rows but cannot sign in (their password hash is unusable). */
@@ -37,12 +45,34 @@ async function seedUser(db: DB, name: string, cache: Map<string, string>) {
   return id;
 }
 
-async function seedReports(db: DB) {
+async function seedReports(db: DB, restore: boolean) {
   const now = Date.now();
   const ago = (m: number) => new Date(now - m * 60_000);
   const cache = new Map<string, string>();
+  let changed = 0;
+
+  const keys = SEED_REPORTS.map((s) => s.id);
+  const existing = new Set(
+    (await db.select({ key: reports.seedKey }).from(reports).where(inArray(reports.seedKey, keys))).map((r) => r.key),
+  );
+
+  if (restore) {
+    const restored = await db
+      .update(reports)
+      .set({ deletedAt: null, deletedBy: null, review: "approved", visibility: "public", rejectionReason: null })
+      .where(
+        and(
+          inArray(reports.seedKey, keys),
+          or(isNotNull(reports.deletedAt), ne(reports.review, "approved"), ne(reports.visibility, "public")),
+        ),
+      )
+      .returning({ id: reports.id });
+    changed += restored.length;
+  }
 
   for (const s of SEED_REPORTS) {
+    if (existing.has(s.id)) continue;
+    changed++;
     const loc = LOCATIONS.find((l) => l.id === s.locationId) ?? LOCATIONS[0];
     const userId = await seedUser(db, s.author, cache);
     const [row] = await db
@@ -82,6 +112,7 @@ async function seedReports(db: DB) {
       });
     }
   }
+  return changed;
 }
 
 /**

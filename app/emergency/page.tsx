@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Page } from "@/components/layout/Page";
-import { EmergencyView } from "./EmergencyView";
+import { EmergencyView } from "@/components/emergency/EmergencyView";
 
 export const metadata: Metadata = { title: "Emergency contacts" };
 

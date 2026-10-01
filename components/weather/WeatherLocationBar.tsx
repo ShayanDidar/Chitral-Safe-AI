@@ -95,6 +95,17 @@ export function WeatherLocationBar() {
             <span suppressHydrationWarning>
               {t("weather.observed", { time: formatDateTime(weather.updatedAt, lang) })} (<TimeAgo iso={weather.updatedAt} />)
             </span>
+            {weatherStatus === "live" && (
+              <span suppressHydrationWarning className={weather.station ? "font-medium text-slate-700" : undefined}>
+                {weather.station
+                  ? t("weather.station", {
+                      place: place(weather.station.name),
+                      temp: Math.round(weather.station.temperature),
+                      time: formatDateTime(weather.station.time, lang),
+                    })
+                  : t("weather.noStation")}
+              </span>
+            )}
             {weatherPlace.kind === "current" && <span>{t("weather.coordsRounded")}</span>}
           </>
         )}

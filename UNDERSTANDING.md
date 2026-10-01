@@ -172,7 +172,10 @@ Extra protections:
 - You can choose a town, a featured place, or "My location" (the browser asks your permission first).
 - Your location is rounded to about 1 km and **never saved**.
 - The page shows when the weather was last updated.
-- Chitral has no public weather station feed, so the numbers are **forecast-model estimates** (like Google or any weather app), usually within 2–3°C of reality.
+- Forecast models are often several °C off in Chitral's deep valleys (on 1 Oct 2026 they said 22°C when it was really 28°C).
+- So the app also reads the **real measurements** from the Pakistan Meteorological Department weather stations in **Chitral Town** and **Drosh**. They report every 3 hours, and OGIMET (ogimet.com) shares them free, with no API key (`lib/server/stations.ts`).
+- For places within 30 km of a station (Chitral Town, Ayun, Kalash Valleys, Garam Chashma, Drosh, Lowari Tunnel) the app works out how far off the forecast was at the station and corrects it. The page says, for example, "Chitral Town weather station measured 28°C at 14:00".
+- Places further away (Upper Chitral, Shandur, Broghil...) have no station, so they show the plain forecast, labelled "Forecast estimate".
 - In the mountains temperature drops about 6°C for every 1,000 m. The app tells Open-Meteo the **real height of each town** (from `data/locations.ts`), so a pin that sits on a nearby slope does not give a too-cold reading.
 - If the model says "snow" but the town is clearly above freezing (4°C or more), the app shows rain instead.
 - A high chance of only a little rain shows a calm "some rain likely" note; the orange "heavy rain" warning appears only when 10 mm or more is expected.
@@ -264,6 +267,7 @@ lib/server/                 Server only
   reports.ts                Who can see what (the privacy rules)
   images.ts                 Photo checking and location-data removal
   weather.ts                Real weather from Open-Meteo
+  stations.ts               Real measurements from Chitral and Drosh weather stations
   ai.ts                     Talks to Gemini / Claude / OpenAI
 
 data/                       Demo reports, places, alerts, sample weather

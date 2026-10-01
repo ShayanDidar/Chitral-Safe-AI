@@ -189,6 +189,8 @@ export interface WeatherData {
   coordinates?: LatLng;
   /** Set when live weather failed and sample data is shown instead. */
   error?: "unavailable";
+  /** Latest real measurement from a nearby weather station (used to correct the forecast). */
+  station?: { name: string; temperature: number; time: string };
   current: {
     temperature: number;
     feelsLike: number;

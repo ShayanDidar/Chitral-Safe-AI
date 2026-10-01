@@ -5,6 +5,9 @@
  *   WEATHER_PROVIDER=open-meteo  (default) live data from Open-Meteo — free, no API key
  *   WEATHER_PROVIDER=demo        sample data, no network (e.g. for offline demos)
  *
+ * Near Chitral Town and Drosh the forecast is corrected with real measurements
+ * from the Pakistan Meteorological Department stations (see stations.ts).
+ *
  * To plug in another provider (OpenWeather, Tomorrow.io, PMD feed, ...), add a
  * function that returns `WeatherData` and select it in `getWeather()`; read its
  * key from a server-only env var so it never reaches the browser.
@@ -14,6 +17,7 @@
 import { buildDemoWeather } from "@/data/weather";
 import { LOCATIONS, PICKER_LOCATION_IDS } from "@/data/locations";
 import type { WeatherData, WeatherIcon } from "@/types";
+import { STATIONS, latestReadings, type StationReading } from "./stations";
 
 export interface WeatherPoint {
   lat: number;
@@ -69,12 +73,14 @@ interface OpenMeteoResponse {
 
 async function fetchOpenMeteo(point?: WeatherPoint): Promise<WeatherData> {
   const locs = PICKER_LOCATION_IDS.map((id) => LOCATIONS.find((l) => l.id === id)!);
-  // First coordinate is the selected point; the rest feed "Conditions across Chitral".
+  // One request for: the selected point, every place ("Conditions across Chitral"),
+  // and the weather stations (to compare the forecast with what they measured).
   const main0 = point ?? { lat: locs[0].coordinates.lat, lng: locs[0].coordinates.lng, name: locs[0].name };
-  const points = [main0, ...locs.map((l) => ({ lat: l.coordinates.lat, lng: l.coordinates.lng }))];
+  const points = [main0, ...locs.map((l) => ({ lat: l.coordinates.lat, lng: l.coordinates.lng })), ...STATIONS];
   // Temperature depends strongly on height in the mountains, so tell Open-Meteo
   // the real height of each town (otherwise it may use a nearby mountainside).
-  const heights = [await heightOf(main0), ...locs.map((l) => l.elevationM)];
+  const [mainHeight, readings] = await Promise.all([heightOf(main0), latestReadings()]);
+  const heights = [mainHeight, ...locs.map((l) => l.elevationM), ...STATIONS.map((s) => s.elevationM)];
   const params = new URLSearchParams({
     latitude: points.map((p) => p.lat.toFixed(3)).join(","),
     longitude: points.map((p) => p.lng.toFixed(3)).join(","),
@@ -90,18 +96,37 @@ async function fetchOpenMeteo(point?: WeatherPoint): Promise<WeatherData> {
     signal: AbortSignal.timeout(6000),
   });
   if (!res.ok) throw new Error(`Open-Meteo HTTP ${res.status}`);
-  const [main, ...all] = (await res.json()) as OpenMeteoResponse[];
+  const [main, ...rest] = (await res.json()) as OpenMeteoResponse[];
+  const all = rest.slice(0, locs.length);
+  const corrections = stationCorrections(readings, rest.slice(locs.length));
+
+  // Correction for the selected point, faded out over the next 12 hours.
+  const fix = correctionFor(main0, corrections);
+  const fixAt = (time: Date) => (fix ? fix.degrees * Math.min(1, Math.max(0, 1 - (time.getTime() - Date.now()) / (12 * 3_600_000))) : 0);
 
   const nowIdx = Math.max(
     0,
     main.hourly.time.findIndex((t) => new Date(`${t}:00+05:00`).getTime() >= Date.now() - 3_600_000),
   );
-  const hourly = main.hourly.time.slice(nowIdx, nowIdx + 24).map((t, i) => ({
-    time: new Date(`${t}:00+05:00`).toISOString(),
-    temperature: Math.round(main.hourly.temperature_2m[nowIdx + i]),
-    rainProbability: main.hourly.precipitation_probability[nowIdx + i] ?? 0,
-  }));
+  const hourly = main.hourly.time.slice(nowIdx, nowIdx + 24).map((t, i) => {
+    const time = new Date(`${t}:00+05:00`);
+    return {
+      time: time.toISOString(),
+      temperature: Math.round(main.hourly.temperature_2m[nowIdx + i] + fixAt(time)),
+      rainProbability: main.hourly.precipitation_probability[nowIdx + i] ?? 0,
+    };
+  });
   const code = main.current.weather_code;
+  const temperature = main.current.temperature_2m + (fix?.degrees ?? 0);
+  // Today's high/low must include the corrected temperatures.
+  const today = main.daily.time[0];
+  const todayTemps = [temperature, ...hourly.filter((h) => toPkDate(h.time) === today).map((h) => h.temperature)];
+  // The station's own measurement counts too when the station is in this town.
+  if (fix && distanceKm(main0, fix.reading.station) <= 5 && toPkDate(fix.reading.time.toISOString()) === today) {
+    todayTemps.push(fix.reading.temperature);
+  }
+  const high = Math.round(Math.max(main.daily.temperature_2m_max[0], ...todayTemps));
+  const low = Math.round(Math.min(main.daily.temperature_2m_min[0], ...todayTemps));
 
   return {
     source: "open-meteo",
@@ -109,38 +134,81 @@ async function fetchOpenMeteo(point?: WeatherPoint): Promise<WeatherData> {
     updatedAt: new Date(`${main.current.time}:00+05:00`).toISOString(),
     location: main0.name,
     coordinates: { lat: main0.lat, lng: main0.lng },
+    station: fix
+      ? { name: fix.reading.station.name, temperature: fix.reading.temperature, time: fix.reading.time.toISOString() }
+      : undefined,
     current: {
-      temperature: Math.round(main.current.temperature_2m),
-      feelsLike: Math.round(main.current.apparent_temperature),
-      condition: describeCode(code, main.current.temperature_2m).label,
-      icon: describeCode(code, main.current.temperature_2m).icon,
+      temperature: Math.round(temperature),
+      feelsLike: Math.round(main.current.apparent_temperature + (fix?.degrees ?? 0)),
+      condition: describeCode(code, temperature).label,
+      icon: describeCode(code, temperature).icon,
       humidity: Math.round(main.current.relative_humidity_2m),
       windSpeed: Math.round(main.current.wind_speed_10m),
       windDirection: compass(main.current.wind_direction_10m),
       rainProbability: main.daily.precipitation_probability_max[0] ?? 0,
       precipitationMm: Math.round(main.daily.precipitation_sum[0] ?? 0),
-      high: Math.round(main.daily.temperature_2m_max[0]),
-      low: Math.round(main.daily.temperature_2m_min[0]),
+      high,
+      low,
     },
     hourly,
     daily: main.daily.time.map((date, i) => ({
       date,
       condition: describeCode(main.daily.weather_code[i], dayMean(main, i)).label,
       icon: describeCode(main.daily.weather_code[i], dayMean(main, i)).icon,
-      high: Math.round(main.daily.temperature_2m_max[i]),
-      low: Math.round(main.daily.temperature_2m_min[i]),
+      high: i === 0 ? high : Math.round(main.daily.temperature_2m_max[i]),
+      low: i === 0 ? low : Math.round(main.daily.temperature_2m_min[i]),
       rainProbability: main.daily.precipitation_probability_max[i] ?? 0,
     })),
-    locations: all.map((w, i) => ({
-      locationId: locs[i].id,
-      name: locs[i].name,
-      temperature: Math.round(w.current.temperature_2m),
-      condition: describeCode(w.current.weather_code, w.current.temperature_2m).label,
-      icon: describeCode(w.current.weather_code, w.current.temperature_2m).icon,
-      rainProbability: w.daily.precipitation_probability_max[0] ?? 0,
-    })),
+    locations: all.map((w, i) => {
+      const t = w.current.temperature_2m + (correctionFor({ ...locs[i].coordinates, name: locs[i].name }, corrections)?.degrees ?? 0);
+      return {
+        locationId: locs[i].id,
+        name: locs[i].name,
+        temperature: Math.round(t),
+        condition: describeCode(w.current.weather_code, t).label,
+        icon: describeCode(w.current.weather_code, t).icon,
+        rainProbability: w.daily.precipitation_probability_max[0] ?? 0,
+      };
+    }),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Correcting the forecast with real station measurements.
+
+interface Correction {
+  reading: StationReading;
+  /** Measured minus forecast temperature at the time of the reading (°C). */
+  degrees: number;
+}
+
+/** How far off the forecast was at each station when it last measured. */
+function stationCorrections(readings: StationReading[], stationForecasts: OpenMeteoResponse[]): Correction[] {
+  return readings.flatMap((reading) => {
+    const forecast = stationForecasts[STATIONS.indexOf(reading.station)];
+    const i = forecast?.hourly.time.indexOf(toPkHour(reading.time)) ?? -1;
+    if (i < 0) return []; // reading is from before today's forecast starts
+    return [{ reading, degrees: reading.temperature - forecast.hourly.temperature_2m[i] }];
+  });
+}
+
+/** Places within 30 km of a station use its correction; places further away keep the plain forecast. */
+function correctionFor(p: WeatherPoint, corrections: Correction[]): Correction | undefined {
+  return corrections
+    .map((c) => ({ c, km: distanceKm(p, c.reading.station) }))
+    .filter((x) => x.km <= 30)
+    .sort((a, b) => a.km - b.km)[0]?.c;
+}
+
+function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const dy = (a.lat - b.lat) * 111;
+  const dx = (a.lng - b.lng) * 111 * Math.cos((a.lat * Math.PI) / 180);
+  return Math.hypot(dx, dy);
+}
+
+/** Pakistan time as Open-Meteo writes it: "2026-10-01T14:00". */
+const toPkHour = (d: Date) => new Date(d.getTime() + 5 * 3_600_000).toISOString().slice(0, 13) + ":00";
+const toPkDate = (iso: string) => toPkHour(new Date(iso)).slice(0, 10);
 
 /**
  * Height of the ground (metres). Known places use the town's real height;

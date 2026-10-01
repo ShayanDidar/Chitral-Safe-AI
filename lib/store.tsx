@@ -215,8 +215,11 @@ export function AppStoreProvider({
   useEffect(() => {
     let cancelled = false;
     const isDefault = weatherPlace.kind === "preset" && weatherPlace.name === DEFAULT_PLACE.name;
-    // The server already sent today's weather for the default place.
-    if (isDefault && weatherTick === 0 && hasInitialWeather.current) return;
+    // The server already sent the default place's weather with the page (only skip that first time).
+    if (isDefault && weatherTick === 0 && hasInitialWeather.current) {
+      hasInitialWeather.current = false;
+      return;
+    }
     api
       .fetchWeather(isDefault ? undefined : weatherPlace)
       .then((w) => {

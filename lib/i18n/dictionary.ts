@@ -105,7 +105,7 @@ const en = {
   "filters.clear": "Clear",
 
   "report.title": "Report a Hazard",
-  "report.subtitle": "No account needed. Your report appears instantly on the map and in the community feed.",
+  "report.subtitle": "Share what you see. An admin checks every report before it appears on the map and in the community feed.",
   "report.type": "Hazard type",
   "report.location": "Location",
   "report.locPlaceholder": "e.g. Ayun road, near the bridge",
@@ -580,7 +580,7 @@ const ur: Record<DictKey, string> = {
   "filters.clear": "صاف کریں",
 
   "report.title": "خطرے کی رپورٹ کریں",
-  "report.subtitle": "کسی اکاؤنٹ کی ضرورت نہیں۔ آپ کی رپورٹ فوراً نقشے اور کمیونٹی فیڈ پر نظر آئے گی۔",
+  "report.subtitle": "جو دیکھیں وہ بتائیں۔ ہر رپورٹ نقشے اور کمیونٹی فیڈ پر آنے سے پہلے ایڈمن چیک کرتا ہے۔",
   "report.type": "خطرے کی قسم",
   "report.location": "مقام",
   "report.locPlaceholder": "مثلاً ایون روڈ، پل کے قریب",

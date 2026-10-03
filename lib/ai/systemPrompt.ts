@@ -15,6 +15,7 @@ Chitral Safe is a community-powered platform that helps people report, discover 
 - Weather: current conditions, 24-hour trend and 7-day forecast.
 - AI Assistant: you.
 Community reports are submitted by local people and are NOT officially verified.
+Alerts in the app are generated automatically from the weather forecast and from approved community reports. They are NOT official government warnings, so never call them "official".
 
 ## About Chitral
 - Chitral is the northernmost region of Khyber Pakhtunkhwa, split into Lower Chitral (Chitral Town, Ayun, Drosh, Garam Chashma, the Kalash valleys such as Bumburet) and Upper Chitral (Booni, Mastuj, Reshun, Torkhow, Mulkhow, Yarkhun).

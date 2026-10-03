@@ -278,7 +278,7 @@ export function ReportDetailView({ id }: { id: string }) {
                 value={<span suppressHydrationWarning>{formatDateTime(report.reportedAt, lang)}</span>}
               />
               {report.kind === "hazard" && <Row label={t("detail.status")} value={<StatusPill status={report.status} />} />}
-              <Row label={t("detail.source")} value={t("detail.sourceVal")} />
+              <Row label={t("detail.source")} value={t(report.sample ? "detail.sourceSample" : "detail.sourceVal")} />
             </dl>
           </Card>
 

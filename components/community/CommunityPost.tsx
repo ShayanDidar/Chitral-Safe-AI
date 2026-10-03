@@ -56,6 +56,9 @@ export function CommunityPost({ report, highlighted }: { report: Report; highlig
               {report.mine && (
                 <span className="rounded-full bg-brand-700 px-1.5 py-0.5 text-[10px] font-semibold text-white">{t("common.yourReport")}</span>
               )}
+              {report.sample && (
+                <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">{t("common.sample")}</span>
+              )}
             </div>
             <p className="text-xs text-slate-500">
               {t(report.kind === "crime" ? "crime.feedLabel" : "post.communityReport")} · <TimeAgo iso={report.reportedAt} />

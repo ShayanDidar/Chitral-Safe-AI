@@ -87,6 +87,8 @@ interface ReportBase {
   reviewedAt?: string | null;
   /** True when the signed-in user submitted it. */
   mine: boolean;
+  /** Demo content added by the app to show how it works (not a real event). */
+  sample: boolean;
   /** Urdu title/description (demo data and generated titles). */
   ur?: { title: string; description: string };
   /** Admin view only, and only for named reports (for follow-up). */

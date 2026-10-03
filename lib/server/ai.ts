@@ -72,7 +72,7 @@ export async function chat(messages: ChatMessage[], context: AIContext | null, l
   }
 
   try {
-    const system = `${SYSTEM_PROMPT}\n\n${languageInstruction(lang)}\n\n${formatContext(context)}`;
+    const system = `${SYSTEM_PROMPT}\n\n${formatContext(context)}\n\n${languageInstruction(lang)}`;
     const reply = await complete(config, system, messages, 900);
     return { reply: reply.trim() || demoChat(lastUser, context, lang), mode: "live" };
   } catch (err) {
@@ -100,8 +100,10 @@ export async function analyzeRisk(
   if (!config) return { assessment: fallback, mode: "demo" };
 
   try {
-    const system = `${SYSTEM_PROMPT}\n\n${languageInstruction(lang)}\n\n${formatContext(context)}`;
-    const prompt = `${RISK_INSTRUCTIONS}\n\nScope: ${scope ?? "All of Chitral"}`;
+    const system = `${SYSTEM_PROMPT}\n\n${formatContext(context)}\n\n${languageInstruction(lang)}`;
+    const prompt = `${RISK_INSTRUCTIONS}\n\nScope: ${scope ?? "All of Chitral"}${
+      lang === "ur" ? "\n\nWrite every text value in Urdu (Urdu script), even though the app data is in English." : ""
+    }`;
     const text = await complete(config, system, [{ role: "user", content: prompt }], 500);
     const json = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
     const levels: RiskLevel[] = ["Low", "Moderate", "High", "Severe"];

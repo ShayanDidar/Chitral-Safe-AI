@@ -83,6 +83,9 @@ Every approved hazard is shown on a topographic map of Chitral, with markers col
 
 <img src="docs/screenshots/map.webp" alt="Live map of Chitral with coloured hazard markers, filters and a list of reports" width="100%">
 
+### 🔔 Automatic alerts
+Nobody types alerts in by hand. The app creates them from real data: **weather alerts** from the live forecast (heavy rain, a hot day that speeds up glacier melt, snow or frost) and **community alerts** from approved critical and high-severity reports, each linking to its report.
+
 ### 📸 Report a hazard in under a minute
 Choose the hazard type (flood, landslide, glacier hazard, road blockage, heavy rain, rockfall, snowfall), drop a pin or tap **Use my location**, add up to four photos, describe what you see and pick a severity. A separate **Crime** form lets people report safety incidents publicly or confidentially, with or without their name.
 
@@ -110,7 +113,7 @@ Weather comes from Open-Meteo for every town, valley and pass, with a 24-hour tr
 <td width="50%"><img src="docs/screenshots/report-detail.webp" alt="Report detail page with photo, location, map and safety guidance"></td>
 </tr>
 <tr>
-<td>People can browse, like and comment on approved reports.</td>
+<td>People can browse, like and comment on approved reports. The demo reports are clearly labelled <b>Sample</b>.</td>
 <td>Each report has its photo, exact location, a small map and safety guidance for that hazard type.</td>
 </tr>
 </table>
@@ -261,7 +264,7 @@ app/                  Web pages (each shows a screen from components/) and app/a
 components/<feature>/ Screens grouped by feature: home, map, reports, community, weather, ai, admin…
 lib/                  Shared logic: app state, English/Urdu text, AI helpers
 lib/server/           Server-only code: database, sign-in, privacy rules, photos, weather, AI
-data/                 Places in Chitral, demo reports and alerts
+data/                 Places in Chitral and demo reports
 drizzle/              Database migrations
 docs/screenshots/     The screenshots in this README
 ```

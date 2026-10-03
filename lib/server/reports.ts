@@ -68,6 +68,7 @@ function toDto(row: ReportRow, x: Extras, view: View, viewer: SessionUser | null
     rejectionReason: view === "public" ? null : row.rejectionReason,
     reviewedAt: view === "public" ? null : (row.reviewedAt?.toISOString() ?? null),
     mine: !!viewer && row.userId === viewer.id,
+    sample: row.seedKey !== null,
     ur: row.translations?.ur,
     reporter:
       view === "admin" && !anonymous && x.author

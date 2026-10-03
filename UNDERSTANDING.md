@@ -159,6 +159,7 @@ Extra protections:
 - Approving a confidential report keeps it confidential.
 - The **Admin map** shows every report at its exact location: a dashed ring means pending, faded means rejected, and a lock means confidential.
 - **Restore demo reports** (button in the review queue) brings back the 11 sample hazard reports if they were deleted or rejected. Useful before a demo. The app also adds any missing demo reports automatically when it starts.
+- Demo reports are marked **"Sample"** in the community feed, and their page says "Sample report (demo data, not a real event)", so nobody mistakes them for real events. Real reports submitted by people have no such label.
 
 ### 6.6 How new reports reach the map
 
@@ -184,7 +185,15 @@ Extra protections:
 - Each reading is reused for 15 minutes, which keeps well within Open-Meteo's free limits.
 - To use sample data on purpose (for example at an exhibition with no internet), set `WEATHER_PROVIDER=demo`.
 
-### 6.8 The AI assistant
+### 6.8 Alerts
+
+- Nobody types the alerts in. The app works them out from real data every time the weather or the reports change (`lib/alerts.ts`).
+- **Weather alerts** come from the live forecast: heavy rain (10 mm or more today), rain likely (60% chance or more), a hot day of 35°C or more (heat melts glaciers faster, which can make glacier streams rise), snow, or freezing temperatures.
+- **Community alerts** come from approved reports that are **critical** (shown as a warning) or **high** (shown as a watch). Each one links to its report.
+- If none of these is true, the home page simply says there are no alerts right now.
+- They are **not official government warnings**, and the AI is told never to call them official.
+
+### 6.9 The AI assistant
 
 - The assistant receives the current app data with each question: weather, approved reports and alerts. So it can answer "What hazards are active right now?" using real information.
 - It is told never to claim certainty, and to say "may indicate an increased risk" rather than "will happen".
@@ -193,19 +202,19 @@ Extra protections:
 - **With a Google Gemini key** it tries `gemini-3.6-flash` first. If that model is busy, it automatically tries other Gemini models.
 - The API key stays on the server and is never sent to the browser.
 
-### 6.9 Emergency contacts
+### 6.10 Emergency contacts
 
 - Shown in the sidebar, in a red phone button on mobile, and on the `/emergency` page.
 - Tapping a contact opens the phone's dialler (`tel:`), messages app (`sms:`) or email (`mailto:`).
 - Only **Rescue 1122** and **Police 15** are pre-filled. Admins can add more (phone, SMS or email) in the Admin portal. No contact details were made up.
 
-### 6.10 Profiles
+### 6.11 Profiles
 
 - Users can change their name, bio and profile photo.
 - Phone number and contact email are **private**: never shown publicly. Admins can see them only on reports submitted with a name, so they can follow up.
 - Profile details are never shown on anonymous reports.
 
-### 6.11 English and Urdu
+### 6.12 English and Urdu
 
 - The **اردو / English** button in the top bar switches language, and the choice is remembered.
 - Urdu uses the **Noto Naskh Arabic** font and a right-to-left layout.
@@ -257,6 +266,7 @@ lib/                        Logic shared by the screens
   api.ts                    Every call from the browser to the server
   i18n/                     English and Urdu text
   ai/                       AI instructions, demo answers, data sent to the AI
+  alerts.ts                 Builds the alerts from real weather and reports
   hazards.ts, crime.ts      Hazard types, severities, crime categories
   mapConfig.ts              Map centre and map styles
   compressImage.ts          Shrinks photos in the browser before upload
@@ -270,7 +280,7 @@ lib/server/                 Server only
   stations.ts               Real measurements from Chitral and Drosh weather stations
   ai.ts                     Talks to Gemini / Claude / OpenAI
 
-data/                       Demo reports, places, alerts, sample weather
+data/                       Demo reports, places, sample weather
 types/                      Shared TypeScript types
 drizzle/                    Database set-up files (migrations)
 scripts/                    Database set-up, make-admin, demo images

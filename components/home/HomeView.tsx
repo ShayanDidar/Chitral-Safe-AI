@@ -114,7 +114,10 @@ export function HomeView() {
             title={t("alerts.title")}
             subtitle={t("alerts.count", { n: alerts.length })}
           />
-          <AlertCard alert={alerts[0]} />
+          {alerts.length === 0 && (
+            <p className="rounded-xl border border-slate-200/80 bg-white p-4 text-sm text-slate-500">{t("alerts.none")}</p>
+          )}
+          {alerts[0] && <AlertCard alert={alerts[0]} />}
           {alerts.slice(1, 3).map((a) => (
             <AlertCard key={a.id} alert={a} compact />
           ))}

@@ -33,6 +33,7 @@ const en = {
   "common.you": "You",
   "common.new": "NEW",
   "common.yourReport": "Your report",
+  "common.sample": "Sample",
   "common.viewReport": "View report",
   "common.viewReportCta": "View Report",
   "common.viewOnMap": "View on Map",
@@ -41,6 +42,7 @@ const en = {
 
   "alerts.title": "Environmental alerts",
   "alerts.count": "{n} active across Chitral",
+  "alerts.none": "No alerts right now. Alerts appear when the forecast shows heavy rain, heat or frost, or when a serious hazard is reported.",
   "alerts.aria": "Alerts ({n})",
   "alerts.short": "Alerts",
   "level.warning": "Warning",
@@ -188,6 +190,7 @@ const en = {
   "detail.status": "Status",
   "detail.source": "Source",
   "detail.sourceVal": "Community report (unverified)",
+  "detail.sourceSample": "Sample report (demo data, not a real event)",
   "detail.guidance": "Safety guidance",
   "detail.emergency": "Emergency: call",
 
@@ -509,6 +512,7 @@ const ur: Record<DictKey, string> = {
   "common.you": "آپ",
   "common.new": "نیا",
   "common.yourReport": "آپ کی رپورٹ",
+  "common.sample": "نمونہ",
   "common.viewReport": "رپورٹ دیکھیں",
   "common.viewReportCta": "رپورٹ دیکھیں",
   "common.viewOnMap": "نقشے پر دیکھیں",
@@ -517,6 +521,7 @@ const ur: Record<DictKey, string> = {
 
   "alerts.title": "ماحولیاتی انتباہات",
   "alerts.count": "چترال بھر میں {n} فعال",
+  "alerts.none": "اس وقت کوئی انتباہ نہیں۔ انتباہ اس وقت آتا ہے جب پیشگوئی میں شدید بارش، گرمی یا سردی ہو، یا کوئی سنگین خطرہ رپورٹ ہو۔",
   "alerts.aria": "انتباہات ({n})",
   "alerts.short": "انتباہات",
   "level.warning": "انتباہ",
@@ -661,6 +666,7 @@ const ur: Record<DictKey, string> = {
   "detail.status": "حیثیت",
   "detail.source": "ذریعہ",
   "detail.sourceVal": "کمیونٹی رپورٹ (غیر تصدیق شدہ)",
+  "detail.sourceSample": "نمونہ رپورٹ (ڈیمو ڈیٹا، حقیقی واقعہ نہیں)",
   "detail.guidance": "حفاظتی ہدایات",
   "detail.emergency": "ہنگامی صورت میں کال کریں:",
 

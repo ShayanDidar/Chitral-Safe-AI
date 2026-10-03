@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { buildDemoWeather } from "@/data/weather";
-import { buildSeedAlerts } from "@/data/alerts";
+import { buildAlerts } from "@/lib/alerts";
 import { DEFAULT_LOCATION, LOCATIONS } from "@/data/locations";
 import * as api from "@/lib/api";
 import type {
@@ -110,13 +110,14 @@ export function AppStoreProvider({
   const [reports, setReports] = useState<Report[]>(initialReports);
   const [user, setUserState] = useState<CurrentUser | null>(initialUser);
   const [contacts, setContacts] = useState<EmergencyContact[]>(initialContacts);
-  const [alerts] = useState<EnvironmentalAlert[]>(() => buildSeedAlerts());
   // Real weather comes from the server with the page; sample data is only a placeholder.
   const [weather, setWeather] = useState<WeatherData>(() => initialWeather ?? buildDemoWeather());
   const [weatherStatus, setWeatherStatus] = useState<WeatherStatus>(() =>
     initialWeather ? statusOf(initialWeather) : "loading",
   );
   const hasInitialWeather = useRef(!!initialWeather);
+  // Alerts are worked out from the live weather and approved reports (see lib/alerts.ts).
+  const alerts = useMemo<EnvironmentalAlert[]>(() => buildAlerts(weather, reports), [weather, reports]);
   const [weatherPlace, setWeatherPlaceState] = useState<WeatherPlace>(DEFAULT_PLACE);
   const [chat, setChatState] = useState<ChatMessage[]>([]);
   const [aiMode, setAiMode] = useState<AIMode | null>(null);

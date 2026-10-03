@@ -34,7 +34,7 @@
 
 ## 👥 Team
 
-| Name | Role | School | phone no
+| Name | Role | School |
 |---|---|---|
 | **Shayan Didar** | Team Lead | Aga Khan Higher Secondary School, Seenlasht |
 | **Mubina Izat** | Team Member | Aga Khan Higher Secondary School, Seenlasht |

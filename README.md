@@ -34,13 +34,13 @@
 
 ## 👥 Team
 
-| Name | Role | School |
-|---|---|---|
-| **Shayan Didar** | Team Lead | Aga Khan Higher Secondary School, Seenlasht |
-| **Mubina Izat** | Team Member | Aga Khan Higher Secondary School, Seenlasht |
-| **Shah Hamraz Ali Rehmat** | Team Member | Aga Khan Higher Secondary School, Seenlasht |
-| **Allina Razaq** | Team Member | Aga Khan Higher Secondary School, Kuragh |
-| **Anishka Hussein** | Team Member | Aga Khan Higher Secondary School, Kuragh |
+| Name | Role | School | Phone |
+|---|---|---|---|
+| **Shayan Didar** | Team Lead | Aga Khan Higher Secondary School, Seenlasht | +92 347 1708399 |
+| **Mubina Izat** | Team Member | Aga Khan Higher Secondary School, Seenlasht | +92 371 5039082 |
+| **Shah Hamraz Ali Rehmat** | Team Member | Aga Khan Higher Secondary School, Seenlasht | +92 344 5546089 |
+| **Allina Razaq** | Team Member | Aga Khan Higher Secondary School, Kuragh | +92 344 0528160 |
+| **Anishka Hussein** | Team Member | Aga Khan Higher Secondary School, Kuragh | +92 321 2938329 |
 
 ---
 
